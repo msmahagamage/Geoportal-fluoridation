@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fluoridation Geoportal</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <p>Geoportal</p>
+        <h1>Fluoridation Data Explorer</h1>
+        <button class="homeButton" id="homeButton" type="button">Home</button>
+      </div>
+
+      <section class="panel">
+        <h2>Layers</h2>
+        <label><input type="radio" name="boundaryLayer" value="county" checked> County fluoridation</label>
+        <label><input type="radio" name="boundaryLayer" value="state"> State fluoridation</label>
+        <label><input type="checkbox" id="wellToggle" checked> Groundwater wells</label>
+      </section>
+
+      <section class="panel">
+        <h2>Filters</h2>
+        <label for="stateFilter">State</label>
+        <select id="stateFilter">
+          <option value="">All states</option>
+        </select>
+        <label for="wellTypeFilter">Well type</label>
+        <select id="wellTypeFilter">
+          <option value="">All well types</option>
+        </select>
+        <label for="fluorideRange">Minimum well fluoride (mg/L)</label>
+        <input id="fluorideRange" type="range" min="0" max="5" value="0" step="0.1">
+        <output id="fluorideRangeValue">0.0</output>
+      </section>
+
+      <section class="panel">
+        <h2>Merge Data</h2>
+        <label for="healthUpload">County food/dental CSV</label>
+        <input id="healthUpload" type="file" accept=".csv">
+        <label for="pwsUpload">Public water system reports CSV</label>
+        <input id="pwsUpload" type="file" accept=".csv">
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Groundwater, counties, states, systems</p>
+          <h2 id="viewTitle">County Fluoridation</h2>
+        </div>
+        <div class="metricStrip">
+          <div><span id="metricCounties">0</span><small>Counties</small></div>
+          <div><span id="metricWells">0</span><small>Visible wells</small></div>
+          <div><span id="metricAverage">0%</span><small>Avg county fluoridation</small></div>
+        </div>
+      </header>
+
+      <section class="mapBand">
+        <div id="map" aria-label="Fluoridation map"></div>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="details">
+        <article>
+          <h3>Selected Geography</h3>
+          <div id="selectedDetails" class="detailBox">Select a county, state, or well on the map.</div>
+        </article>
+        <article>
+          <h3>Public Water System Reports</h3>
+          <div id="pwsSummary" class="detailBox">Upload a public water system CSV to inspect individual reports.</div>
+        </article>
+        <article>
+          <h3>County Access Indicators</h3>
+          <div id="healthSummary" class="detailBox">Upload county-level healthy food and dental care data to merge by FIPS.</div>
+        </article>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,2 @@
+pws_id,system_name,state,county,fips,report_year,fluoride_mg_l,fluoridation_status,population_served,source
+AL0000000,Example Water System,AL,Autauga County,01001,2022,,,, 
