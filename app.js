@@ -133,6 +133,7 @@ function buildFilters(counties, wells) {
 function addCountyLayer(geojson) {
   state.countyLayer = L.geoJSON(geojson, {
     pane: "boundaryPane",
+    bubblingMouseEvents: false,
     style: countyStyle,
     onEachFeature: (feature, layer) => {
       layer.on("click", (event) => {
@@ -158,6 +159,7 @@ function addCountyLayer(geojson) {
 function addStateLayer(geojson) {
   state.stateLayer = L.geoJSON(geojson, {
     pane: "boundaryPane",
+    bubblingMouseEvents: false,
     style: stateStyle,
     onEachFeature: (feature, layer) => {
       layer.on("click", (event) => {
@@ -178,8 +180,10 @@ function addStateLayer(geojson) {
 function addWellLayer(wells) {
   state.wellLayer = L.geoJSON(wells, {
     pane: "wellPane",
+    bubblingMouseEvents: false,
     pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
       pane: "wellPane",
+      bubblingMouseEvents: false,
       ...wellBaseStyle(feature)
     }),
     onEachFeature: (feature, layer) => {
