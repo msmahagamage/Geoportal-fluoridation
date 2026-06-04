@@ -10,6 +10,21 @@ Open `index.html` in a browser, or serve this folder with any static web server.
 
 For limited sharing, keep the GitHub repository private and add only the intended collaborators. If GitHub Pages is enabled, review the Pages visibility setting before sharing the live link.
 
+## Run Locally
+
+If GitHub Pages is not enabled, run the geoportal from your computer with a local web server:
+
+```powershell
+cd D:\fluoridation
+& "C:\Users\mmahagamage\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" -m http.server 8877 --bind 127.0.0.1
+```
+
+Then open:
+
+[http://127.0.0.1:8877/index.html](http://127.0.0.1:8877/index.html)
+
+Keep the PowerShell window open while using the geoportal. Press `Ctrl+C` in that window to stop the local server.
+
 ## Data Included
 
 - `data/processed/groundwater_wells.geojson`: naturally occurring groundwater wells parsed from USGS site IDs.
