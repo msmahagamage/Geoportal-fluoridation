@@ -33,7 +33,7 @@ body {
 
 .brand {
   display: grid;
-  gap: 12px;
+  gap: 4px;
 }
 
 .brand p,
@@ -113,23 +113,6 @@ output {
   grid-template-columns: minmax(180px, 1fr) auto;
   align-items: center;
   gap: 14px;
-}
-
-.homeButton {
-  border: 1px solid var(--teal);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--teal);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-  min-height: 38px;
-  padding: 0 16px;
-  width: 100%;
-}
-
-.homeButton:hover {
-  background: #edf7f1;
 }
 
 .metricStrip {
@@ -229,6 +212,21 @@ output {
 
 .leaflet-popup-content {
   min-width: 210px;
+}
+
+.leaflet-control-home button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font: 700 1rem/30px "Segoe UI", Arial, sans-serif;
+  padding: 0;
+}
+
+.leaflet-control-home button:hover {
+  background: #f4f6f6;
 }
 
 @media (max-width: 900px) {

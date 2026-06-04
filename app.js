@@ -19,7 +19,7 @@ const state = {
   countyLayer: null,
   stateLayer: null,
   wellLayer: null,
-  activeBoundary: "county"
+  activeBoundary: "state"
 };
 
 const map = L.map("map", { preferCanvas: true }).setView([39.5, -98.35], 4);
@@ -27,6 +27,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
   attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
+addHomeControl();
 
 const els = {
   stateFilter: document.getElementById("stateFilter"),
@@ -38,7 +39,6 @@ const els = {
   metricCounties: document.getElementById("metricCounties"),
   metricWells: document.getElementById("metricWells"),
   metricAverage: document.getElementById("metricAverage"),
-  homeButton: document.getElementById("homeButton"),
   selectedDetails: document.getElementById("selectedDetails"),
   healthSummary: document.getElementById("healthSummary"),
   pwsSummary: document.getElementById("pwsSummary"),
@@ -61,7 +61,7 @@ Promise.all([
   addCountyLayer(countyGeo);
   addStateLayer(stateGeo);
   addWellLayer(wells);
-  switchBoundary("county");
+  switchBoundary("state");
   refreshWells();
   updateMetrics();
 }).catch((error) => {
@@ -71,8 +71,6 @@ Promise.all([
 document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
   input.addEventListener("change", () => switchBoundary(input.value));
 });
-
-els.homeButton.addEventListener("click", resetHome);
 
 [els.stateFilter, els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
   el.addEventListener("input", () => {
@@ -198,7 +196,7 @@ function switchBoundary(layerName) {
 }
 
 function resetHome() {
-  document.querySelector("input[name='boundaryLayer'][value='county']").checked = true;
+  document.querySelector("input[name='boundaryLayer'][value='state']").checked = true;
   els.stateFilter.value = "";
   els.wellTypeFilter.value = "";
   els.fluorideRange.value = "0";
@@ -207,10 +205,31 @@ function resetHome() {
   map.closePopup();
   map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
   els.selectedDetails.textContent = "Select a county, state, or well on the map.";
-  switchBoundary("county");
+  switchBoundary("state");
   refreshWells();
   restyleBoundaries();
   updateMetrics();
+}
+
+function addHomeControl() {
+  const HomeControl = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd() {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-home");
+      const button = L.DomUtil.create("button", "", container);
+      button.type = "button";
+      button.title = "Home";
+      button.setAttribute("aria-label", "Reset map to home view");
+      button.textContent = "H";
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.on(button, "click", (event) => {
+        L.DomEvent.stop(event);
+        resetHome();
+      });
+      return container;
+    }
+  });
+  map.addControl(new HomeControl());
 }
 
 function refreshWells() {
