@@ -20,6 +20,7 @@ const state = {
   stateLayer: null,
   wellLayer: null,
   activeBoundary: "state",
+  identifyMode: "boundaries",
   selectedFeature: null
 };
 
@@ -77,6 +78,10 @@ document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
   input.addEventListener("change", () => switchBoundary(input.value));
 });
 
+document.querySelectorAll("input[name='identifyMode']").forEach((input) => {
+  input.addEventListener("change", () => switchIdentifyMode(input.value));
+});
+
 map.on("click", clearSelection);
 
 [els.stateFilter, els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
@@ -131,6 +136,7 @@ function addCountyLayer(geojson) {
     style: countyStyle,
     onEachFeature: (feature, layer) => {
       layer.on("click", (event) => {
+        if (state.identifyMode !== "boundaries") return;
         L.DomEvent.stop(event.originalEvent);
         const fips = String(feature.id || feature.properties.GEO_ID || "").slice(-5);
         const row = state.countyFluoride.get(fips);
@@ -155,6 +161,7 @@ function addStateLayer(geojson) {
     style: stateStyle,
     onEachFeature: (feature, layer) => {
       layer.on("click", (event) => {
+        if (state.identifyMode !== "boundaries") return;
         L.DomEvent.stop(event.originalEvent);
         const abbr = feature.properties.code || feature.properties.STATE || stateNameToAbbr(feature.properties.name);
         const row = state.stateFluoride.get(abbr);
@@ -188,6 +195,7 @@ function addWellLayer(wells) {
       });
       layer.bindPopup(details);
       layer.on("click", (event) => {
+        if (state.identifyMode !== "wells") return;
         L.DomEvent.stop(event.originalEvent);
         toggleSelection("well", p.usgs_id, layer, details);
       });
@@ -213,8 +221,16 @@ function switchBoundary(layerName) {
   updateLegend();
 }
 
+function switchIdentifyMode(mode) {
+  state.identifyMode = mode;
+  clearSelection();
+  refreshWells();
+}
+
 function resetHome() {
   document.querySelector("input[name='boundaryLayer'][value='state']").checked = true;
+  document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
+  state.identifyMode = "boundaries";
   els.stateFilter.value = "";
   els.wellTypeFilter.value = "";
   els.fluorideRange.value = "0";
@@ -369,12 +385,18 @@ function toggleSelection(type, id, layer, detailsHtml) {
 function clearSelection() {
   const selected = state.selectedFeature;
   state.selectedFeature = null;
-  els.selectedDetails.textContent = "Select a county, state, or well on the map.";
+  els.selectedDetails.textContent = selectedPrompt();
   map.closePopup();
   if (selected?.type === "well" && selected.layer) {
     selected.layer.setStyle(wellBaseStyle(selected.layer.feature));
   }
   restyleBoundaries();
+}
+
+function selectedPrompt() {
+  return state.identifyMode === "wells"
+    ? "Select a groundwater well on the map."
+    : "Select a county or state boundary on the map.";
 }
 
 function applySelectedStyle() {
@@ -404,7 +426,8 @@ function wellBaseStyle(feature) {
     fillColor: wellColor(feature.properties.fluoride_mg_l),
     fillOpacity: 0.7,
     color: "#263238",
-    weight: 0.4
+    weight: 0.4,
+    interactive: state.identifyMode === "wells"
   };
 }
 

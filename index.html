@@ -22,6 +22,12 @@
       </section>
 
       <section class="panel">
+        <h2>Identify</h2>
+        <label><input type="radio" name="identifyMode" value="boundaries" checked> County/state boundaries</label>
+        <label><input type="radio" name="identifyMode" value="wells"> Groundwater wells</label>
+      </section>
+
+      <section class="panel">
         <h2>Filters</h2>
         <label for="stateFilter">State</label>
         <select id="stateFilter">
@@ -66,7 +72,7 @@
       <section class="details">
         <article>
           <h3>Selected Geography</h3>
-          <div id="selectedDetails" class="detailBox">Select a county, state, or well on the map.</div>
+          <div id="selectedDetails" class="detailBox">Select a county or state boundary on the map.</div>
         </article>
         <article>
           <h3>Public Water System Reports</h3>
