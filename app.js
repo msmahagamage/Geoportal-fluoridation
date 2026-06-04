@@ -198,7 +198,12 @@ function addWellLayer(wells) {
         "Depth": p.depth_ft ? `${p.depth_ft} ft` : "NA",
         "Date": p.date || "NA"
       });
-      layer.bindPopup(details);
+      layer.bindPopup(details, {
+        autoPan: true,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: 320
+      });
       layer.on("click", (event) => {
         if (state.identifyMode !== "wells") return;
         L.DomEvent.stop(event.originalEvent);
