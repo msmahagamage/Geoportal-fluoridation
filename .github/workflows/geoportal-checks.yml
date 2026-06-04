@@ -1,0 +1,36 @@
+name: Geoportal checks
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check JavaScript syntax
+        run: node --check app.js
+
+      - name: Check required files
+        run: |
+          test -f index.html
+          test -f styles.css
+          test -f data/processed/groundwater_wells.geojson
+          test -f data/processed/county_fluoride_2022.json
+          test -f data/processed/state_fluoride_2022.json
+
+      - name: Validate processed JSON
+        run: |
+          python -m json.tool data/processed/groundwater_wells.geojson > /dev/null
+          python -m json.tool data/processed/county_fluoride_2022.json > /dev/null
+          python -m json.tool data/processed/state_fluoride_2022.json > /dev/null
