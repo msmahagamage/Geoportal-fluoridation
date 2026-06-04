@@ -27,6 +27,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
   attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
+map.createPane("boundaryPane");
+map.getPane("boundaryPane").style.zIndex = 410;
+map.createPane("wellPane");
+map.getPane("wellPane").style.zIndex = 430;
 addHomeControl();
 
 const els = {
@@ -120,6 +124,7 @@ function buildFilters(counties, wells) {
 
 function addCountyLayer(geojson) {
   state.countyLayer = L.geoJSON(geojson, {
+    pane: "boundaryPane",
     style: countyStyle,
     onEachFeature: (feature, layer) => {
       layer.on("click", () => {
@@ -142,6 +147,7 @@ function addCountyLayer(geojson) {
 
 function addStateLayer(geojson) {
   state.stateLayer = L.geoJSON(geojson, {
+    pane: "boundaryPane",
     style: stateStyle,
     onEachFeature: (feature, layer) => {
       layer.on("click", () => {
@@ -159,7 +165,9 @@ function addStateLayer(geojson) {
 
 function addWellLayer(wells) {
   state.wellLayer = L.geoJSON(wells, {
+    pane: "wellPane",
     pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+      pane: "wellPane",
       radius: radiusFor(feature.properties.fluoride_mg_l),
       fillColor: wellColor(feature.properties.fluoride_mg_l),
       fillOpacity: 0.7,
@@ -192,6 +200,7 @@ function switchBoundary(layerName) {
     state.stateLayer.addTo(map);
     els.viewTitle.textContent = "State Fluoridation";
   }
+  bringWellsToFront();
   updateLegend();
 }
 
@@ -251,6 +260,13 @@ function refreshWells() {
   if (state.wellLayer) map.removeLayer(state.wellLayer);
   addWellLayer(filtered);
   state.wellLayer.addTo(map);
+  bringWellsToFront();
+}
+
+function bringWellsToFront() {
+  if (state.wellLayer && map.hasLayer(state.wellLayer)) {
+    state.wellLayer.bringToFront();
+  }
 }
 
 function restyleBoundaries() {
