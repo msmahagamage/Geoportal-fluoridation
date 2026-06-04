@@ -19,7 +19,8 @@ const state = {
   countyLayer: null,
   stateLayer: null,
   wellLayer: null,
-  activeBoundary: "state"
+  activeBoundary: "state",
+  selectedFeature: null
 };
 
 const map = L.map("map", { preferCanvas: true }).setView([39.5, -98.35], 4);
@@ -76,6 +77,8 @@ document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
   input.addEventListener("change", () => switchBoundary(input.value));
 });
 
+map.on("click", clearSelection);
+
 [els.stateFilter, els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
   el.addEventListener("input", () => {
     els.fluorideRangeValue.textContent = Number(els.fluorideRange.value).toFixed(1);
@@ -127,11 +130,12 @@ function addCountyLayer(geojson) {
     pane: "boundaryPane",
     style: countyStyle,
     onEachFeature: (feature, layer) => {
-      layer.on("click", () => {
+      layer.on("click", (event) => {
+        L.DomEvent.stop(event.originalEvent);
         const fips = String(feature.id || feature.properties.GEO_ID || "").slice(-5);
         const row = state.countyFluoride.get(fips);
         const health = state.healthAccess.get(fips);
-        els.selectedDetails.innerHTML = detailGrid({
+        toggleSelection("county", fips, layer, detailGrid({
           "County": row?.county || feature.properties.NAME || "Unknown",
           "FIPS": fips,
           "Fluoridated": percent(row?.pctfluoride_2022),
@@ -139,7 +143,7 @@ function addCountyLayer(geojson) {
           "Dental access": valueOrBlank(health?.dental_care_access),
           "Private dental providers": valueOrBlank(health?.private_dental_providers),
           "Public dental providers": valueOrBlank(health?.public_dental_providers)
-        });
+        }));
       });
     }
   });
@@ -150,14 +154,15 @@ function addStateLayer(geojson) {
     pane: "boundaryPane",
     style: stateStyle,
     onEachFeature: (feature, layer) => {
-      layer.on("click", () => {
+      layer.on("click", (event) => {
+        L.DomEvent.stop(event.originalEvent);
         const abbr = feature.properties.code || feature.properties.STATE || stateNameToAbbr(feature.properties.name);
         const row = state.stateFluoride.get(abbr);
-        els.selectedDetails.innerHTML = detailGrid({
+        toggleSelection("state", abbr, layer, detailGrid({
           "State": `${feature.properties.name || abbr} (${abbr || "NA"})`,
           "Counties": valueOrBlank(row?.county_count),
           "Average fluoridated": percent(row?.avg_pctfluoride_2022)
-        });
+        }));
       });
     }
   });
@@ -168,15 +173,11 @@ function addWellLayer(wells) {
     pane: "wellPane",
     pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
       pane: "wellPane",
-      radius: radiusFor(feature.properties.fluoride_mg_l),
-      fillColor: wellColor(feature.properties.fluoride_mg_l),
-      fillOpacity: 0.7,
-      color: "#263238",
-      weight: 0.4
+      ...wellBaseStyle(feature)
     }),
     onEachFeature: (feature, layer) => {
       const p = feature.properties;
-      layer.bindPopup(detailGrid({
+      const details = detailGrid({
         "USGS site": p.usgs_id,
         "State": p.state,
         "Aquifer": p.aquifer,
@@ -184,12 +185,20 @@ function addWellLayer(wells) {
         "Fluoride": `${p.fluoride_mg_l ?? "NA"} mg/L`,
         "Depth": p.depth_ft ? `${p.depth_ft} ft` : "NA",
         "Date": p.date || "NA"
-      }));
+      });
+      layer.bindPopup(details);
+      layer.on("click", (event) => {
+        L.DomEvent.stop(event.originalEvent);
+        toggleSelection("well", p.usgs_id, layer, details);
+      });
     }
   });
 }
 
 function switchBoundary(layerName) {
+  if (state.selectedFeature && state.selectedFeature.type !== "well" && state.selectedFeature.type !== layerName) {
+    clearSelection();
+  }
   state.activeBoundary = layerName;
   if (state.countyLayer) map.removeLayer(state.countyLayer);
   if (state.stateLayer) map.removeLayer(state.stateLayer);
@@ -213,7 +222,7 @@ function resetHome() {
   els.wellToggle.checked = true;
   map.closePopup();
   map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
-  els.selectedDetails.textContent = "Select a county, state, or well on the map.";
+  clearSelection();
   switchBoundary("state");
   refreshWells();
   restyleBoundaries();
@@ -244,6 +253,7 @@ function addHomeControl() {
 function refreshWells() {
   if (!state.wellLayer) return;
   if (map.hasLayer(state.wellLayer)) map.removeLayer(state.wellLayer);
+  if (state.selectedFeature?.type === "well") clearSelection();
   if (!els.wellToggle.checked) return;
   const selectedState = els.stateFilter.value;
   const selectedType = els.wellTypeFilter.value;
@@ -272,6 +282,7 @@ function bringWellsToFront() {
 function restyleBoundaries() {
   if (state.countyLayer) state.countyLayer.setStyle(countyStyle);
   if (state.stateLayer) state.stateLayer.setStyle(stateStyle);
+  applySelectedStyle();
 }
 
 function updateMetrics() {
@@ -301,7 +312,8 @@ function updateLegend() {
 function countyStyle(feature) {
   const fips = String(feature.id || feature.properties.GEO_ID || "").slice(-5);
   const row = state.countyFluoride.get(fips);
-  return {
+  const selected = state.selectedFeature?.type === "county" && state.selectedFeature.id === fips;
+  return selected ? selectedBoundaryStyle() : {
     color: "#ffffff",
     weight: 0.5,
     fillOpacity: 0.76,
@@ -312,12 +324,69 @@ function countyStyle(feature) {
 function stateStyle(feature) {
   const abbr = feature.properties.code || stateNameToAbbr(feature.properties.name);
   const row = state.stateFluoride.get(abbr);
-  return {
+  const selected = state.selectedFeature?.type === "state" && state.selectedFeature.id === abbr;
+  return selected ? selectedBoundaryStyle() : {
     color: "#ffffff",
     weight: 1,
     fillOpacity: 0.78,
     fillColor: choroplethColor(row?.avg_pctfluoride_2022)
   };
+}
+
+function selectedBoundaryStyle() {
+  return {
+    color: "#101820",
+    weight: 3,
+    fillOpacity: 0.9,
+    fillColor: "#ffd166"
+  };
+}
+
+function selectedWellStyle(layer) {
+  const value = layer.feature?.properties?.fluoride_mg_l;
+  return {
+    radius: radiusFor(value) + 4,
+    fillColor: wellColor(value),
+    fillOpacity: 0.95,
+    color: "#101820",
+    weight: 3
+  };
+}
+
+function toggleSelection(type, id, layer, detailsHtml) {
+  const selected = state.selectedFeature;
+  if (selected?.type === type && selected.id === id) {
+    clearSelection();
+    return;
+  }
+  clearSelection();
+  state.selectedFeature = { type, id, layer };
+  els.selectedDetails.innerHTML = detailsHtml;
+  applySelectedStyle();
+  if (type === "well") layer.openPopup();
+}
+
+function clearSelection() {
+  const selected = state.selectedFeature;
+  state.selectedFeature = null;
+  els.selectedDetails.textContent = "Select a county, state, or well on the map.";
+  map.closePopup();
+  if (selected?.type === "well" && selected.layer) {
+    selected.layer.setStyle(wellBaseStyle(selected.layer.feature));
+  }
+  restyleBoundaries();
+}
+
+function applySelectedStyle() {
+  const selected = state.selectedFeature;
+  if (!selected?.layer) return;
+  if (selected.type === "well") {
+    selected.layer.setStyle(selectedWellStyle(selected.layer));
+    selected.layer.bringToFront();
+  } else {
+    selected.layer.setStyle(selectedBoundaryStyle());
+  }
+  bringWellsToFront();
 }
 
 function choroplethColor(value) {
@@ -327,6 +396,16 @@ function choroplethColor(value) {
   if (n >= 0.5) return "#74b7a1";
   if (n >= 0.25) return "#bfe3cf";
   return "#edf7f1";
+}
+
+function wellBaseStyle(feature) {
+  return {
+    radius: radiusFor(feature.properties.fluoride_mg_l),
+    fillColor: wellColor(feature.properties.fluoride_mg_l),
+    fillOpacity: 0.7,
+    color: "#263238",
+    weight: 0.4
+  };
 }
 
 function wellColor(value) {
