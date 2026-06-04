@@ -33,6 +33,7 @@ map.createPane("boundaryPane");
 map.getPane("boundaryPane").style.zIndex = 410;
 map.createPane("wellPane");
 map.getPane("wellPane").style.zIndex = 430;
+updateIdentifyInteractivity();
 addHomeControl();
 
 const els = {
@@ -228,13 +229,20 @@ function switchBoundary(layerName) {
 function switchIdentifyMode(mode) {
   state.identifyMode = mode;
   clearSelection();
+  updateIdentifyInteractivity();
   refreshWells();
+}
+
+function updateIdentifyInteractivity() {
+  map.getPane("boundaryPane").style.pointerEvents = state.identifyMode === "boundaries" ? "auto" : "none";
+  map.getPane("wellPane").style.pointerEvents = state.identifyMode === "wells" ? "auto" : "none";
 }
 
 function resetHome() {
   document.querySelector("input[name='boundaryLayer'][value='state']").checked = true;
   document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
   state.identifyMode = "boundaries";
+  updateIdentifyInteractivity();
   els.stateFilter.value = "";
   els.wellTypeFilter.value = "";
   els.fluorideRange.value = "0";
