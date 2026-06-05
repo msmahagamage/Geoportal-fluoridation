@@ -30,17 +30,15 @@ Keep the PowerShell window open while using the geoportal. Press `Ctrl+C` in tha
 - `data/processed/groundwater_wells.geojson`: naturally occurring groundwater wells parsed from USGS site IDs.
 - `data/processed/county_fluoride_2022.json`: county fluoridation levels from the Stata file.
 - `data/processed/state_fluoride_2022.json`: population-unweighted county average by state from the county file.
+- `data/processed/county_health_2025.json`: county healthy-food access and dentist-access indicators from County Health Rankings 2025.
 
 The map uses public Census/Plotly GeoJSON boundaries at runtime, so an internet connection is needed for county and state polygons. The well points and tables are local.
 
 ## Add More Data
 
-Use the templates in `data/templates/`:
+Use `data/templates/public_water_system_reports_template.csv` for individual public water system reports.
 
-- `county_health_access_template.csv`: county-level healthy food and dental care indicators.
-- `public_water_system_reports_template.csv`: individual public water system reports.
-
-After adding real files, either upload them inside the app or update `scripts/prepare_data.py` to merge them into `data/processed/`.
+County healthy-food and dental-care access are built into the geoportal. Update the County Health Rankings source under `D:\fluoridation\data\COUNTY HEALTH`, then rebuild the processed data when a newer release is available.
 
 ## Rebuild Processed Data
 

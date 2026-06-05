@@ -28,9 +28,11 @@ jobs:
           test -f data/processed/groundwater_wells.geojson
           test -f data/processed/county_fluoride_2022.json
           test -f data/processed/state_fluoride_2022.json
+          test -f data/processed/county_health_2025.json
 
       - name: Validate processed JSON
         run: |
           python -m json.tool data/processed/groundwater_wells.geojson > /dev/null
           python -m json.tool data/processed/county_fluoride_2022.json > /dev/null
           python -m json.tool data/processed/state_fluoride_2022.json > /dev/null
+          python -m json.tool data/processed/county_health_2025.json > /dev/null

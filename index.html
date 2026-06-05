@@ -18,6 +18,8 @@
         <h2>Layers</h2>
         <label><input type="radio" name="boundaryLayer" value="county"> County fluoridation</label>
         <label><input type="radio" name="boundaryLayer" value="state" checked> State fluoridation</label>
+        <label><input type="radio" name="boundaryLayer" value="food"> Limited healthy food access</label>
+        <label><input type="radio" name="boundaryLayer" value="dental"> Dental care access</label>
         <label><input type="checkbox" id="wellToggle" checked> Groundwater wells</label>
       </section>
 
@@ -43,9 +45,7 @@
       </section>
 
       <section class="panel">
-        <h2>Merge Data</h2>
-        <label for="healthUpload">County food/dental CSV</label>
-        <input id="healthUpload" type="file" accept=".csv">
+        <h2>Additional Data</h2>
         <label for="pwsUpload">Public water system reports CSV</label>
         <input id="pwsUpload" type="file" accept=".csv">
       </section>
@@ -60,7 +60,7 @@
         <div class="metricStrip">
           <div><span id="metricCounties">0</span><small>Counties</small></div>
           <div><span id="metricWells">0</span><small>Visible wells</small></div>
-          <div><span id="metricAverage">0%</span><small>Avg county fluoridation</small></div>
+          <div><span id="metricAverage">0%</span><small id="metricAverageLabel">Avg county fluoridation</small></div>
         </div>
       </header>
 
@@ -80,7 +80,7 @@
         </article>
         <article>
           <h3>County Access Indicators</h3>
-          <div id="healthSummary" class="detailBox">Upload county-level healthy food and dental care data to merge by FIPS.</div>
+          <div id="healthSummary" class="detailBox">Select a county to view healthy-food and dental-care access.</div>
         </article>
       </section>
     </main>

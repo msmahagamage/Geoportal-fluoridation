@@ -2,6 +2,7 @@ const DATA = {
   wells: "data/processed/groundwater_wells.geojson",
   counties: "data/processed/county_fluoride_2022.json",
   states: "data/processed/state_fluoride_2022.json",
+  health: "data/processed/county_health_2025.json",
   countyGeo: "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json",
   stateGeo: "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
 };
@@ -46,11 +47,11 @@ const els = {
   metricCounties: document.getElementById("metricCounties"),
   metricWells: document.getElementById("metricWells"),
   metricAverage: document.getElementById("metricAverage"),
+  metricAverageLabel: document.getElementById("metricAverageLabel"),
   selectedDetails: document.getElementById("selectedDetails"),
   healthSummary: document.getElementById("healthSummary"),
   pwsSummary: document.getElementById("pwsSummary"),
   legend: document.getElementById("legend"),
-  healthUpload: document.getElementById("healthUpload"),
   pwsUpload: document.getElementById("pwsUpload")
 };
 
@@ -58,12 +59,14 @@ Promise.all([
   fetchJson(DATA.wells),
   fetchJson(DATA.counties),
   fetchJson(DATA.states),
+  fetchJson(DATA.health),
   fetchJson(DATA.countyGeo),
   fetchJson(DATA.stateGeo)
-]).then(([wells, counties, states, countyGeo, stateGeo]) => {
+]).then(([wells, counties, states, health, countyGeo, stateGeo]) => {
   state.wells = wells;
   counties.forEach((row) => state.countyFluoride.set(String(row.fips).padStart(5, "0"), row));
   states.forEach((row) => state.stateFluoride.set(row.state, row));
+  health.forEach((row) => state.healthAccess.set(String(row.fips).padStart(5, "0"), row));
   buildFilters(counties, wells);
   addCountyLayer(countyGeo);
   addStateLayer(stateGeo);
@@ -92,17 +95,6 @@ map.on("click", clearSelection);
     restyleBoundaries();
     updateMetrics();
   });
-});
-
-els.healthUpload.addEventListener("change", async (event) => {
-  const rows = await readCsvFile(event.target.files[0]);
-  state.healthAccess.clear();
-  rows.forEach((row) => {
-    const fips = clean(row.fips || row.FIPS || row.geoid || row.GEOID).padStart(5, "0");
-    if (fips) state.healthAccess.set(fips, row);
-  });
-  els.healthSummary.innerHTML = `<strong>${state.healthAccess.size.toLocaleString()}</strong> county records merged by FIPS.`;
-  restyleBoundaries();
 });
 
 els.pwsUpload.addEventListener("change", async (event) => {
@@ -147,11 +139,14 @@ function addCountyLayer(geojson) {
           "County": row?.county || feature.properties.NAME || "Unknown",
           "FIPS": fips,
           "Fluoridated": percent(row?.pctfluoride_2022),
-          "Healthy food access": valueOrBlank(health?.healthy_food_access),
-          "Dental access": valueOrBlank(health?.dental_care_access),
-          "Private dental providers": valueOrBlank(health?.private_dental_providers),
-          "Public dental providers": valueOrBlank(health?.public_dental_providers)
+          "Limited healthy food access": healthPercent(health?.limited_healthy_food_pct),
+          "Food environment index": healthNumber(health?.food_environment_index, 1, " / 10"),
+          "Dentists per 100,000": healthNumber(health?.dentists_per_100k, 1),
+          "Population per dentist": wholeNumber(health?.population_per_dentist)
         }));
+        if (state.selectedFeature?.type === "county" && state.selectedFeature.id === fips) {
+          showHealthDetails(health);
+        }
       });
     }
   });
@@ -214,21 +209,27 @@ function addWellLayer(wells) {
 }
 
 function switchBoundary(layerName) {
-  if (state.selectedFeature && state.selectedFeature.type !== "well" && state.selectedFeature.type !== layerName) {
+  if (state.selectedFeature && state.selectedFeature.type !== "well") {
     clearSelection();
   }
   state.activeBoundary = layerName;
   if (state.countyLayer) map.removeLayer(state.countyLayer);
   if (state.stateLayer) map.removeLayer(state.stateLayer);
-  if (layerName === "county") {
+  if (layerName === "county" || layerName === "food" || layerName === "dental") {
     state.countyLayer.addTo(map);
-    els.viewTitle.textContent = "County Fluoridation";
+    els.viewTitle.textContent = layerName === "food"
+      ? "Limited Healthy Food Access"
+      : layerName === "dental"
+        ? "Dental Care Access"
+        : "County Fluoridation";
   } else {
     state.stateLayer.addTo(map);
     els.viewTitle.textContent = "State Fluoridation";
   }
+  restyleBoundaries();
   bringWellsToFront();
   updateLegend();
+  updateMetrics();
 }
 
 function switchIdentifyMode(mode) {
@@ -324,10 +325,41 @@ function updateMetrics() {
   const wells = els.wellToggle.checked && state.wellLayer ? state.wellLayer.getLayers().length : 0;
   els.metricCounties.textContent = counties.length.toLocaleString();
   els.metricWells.textContent = wells.toLocaleString();
-  els.metricAverage.textContent = percent(average(counties.map((row) => row.pctfluoride_2022)));
+  if (state.activeBoundary === "food") {
+    els.metricAverage.textContent = `${average([...state.healthAccess.values()].map((row) => row.limited_healthy_food_pct)).toFixed(1)}%`;
+    els.metricAverageLabel.textContent = "Avg limited food access";
+  } else if (state.activeBoundary === "dental") {
+    els.metricAverage.textContent = average([...state.healthAccess.values()].map((row) => row.dentists_per_100k)).toFixed(1);
+    els.metricAverageLabel.textContent = "Avg dentists per 100k";
+  } else {
+    els.metricAverage.textContent = percent(average(counties.map((row) => row.pctfluoride_2022)));
+    els.metricAverageLabel.textContent = "Avg county fluoridation";
+  }
 }
 
 function updateLegend() {
+  if (state.activeBoundary === "food") {
+    els.legend.innerHTML = `
+      <strong>Limited healthy food access</strong>
+      ${legendRow("#1f7a7a", "0-5%")}
+      ${legendRow("#8bc5a9", "5-10%")}
+      ${legendRow("#e2b84b", "10-20%")}
+      ${legendRow("#b4473a", "Above 20%")}
+      ${legendRow("#c8ced1", "No data")}
+    `;
+    return;
+  }
+  if (state.activeBoundary === "dental") {
+    els.legend.innerHTML = `
+      <strong>Dentists per 100,000</strong>
+      ${legendRow("#b4473a", "Below 30")}
+      ${legendRow("#e2b84b", "30-50")}
+      ${legendRow("#8bc5a9", "50-70")}
+      ${legendRow("#1f7a7a", "70 or more")}
+      ${legendRow("#c8ced1", "No data")}
+    `;
+    return;
+  }
   els.legend.innerHTML = `
     <strong>Fluoridation level</strong>
     ${legendRow("#edf7f1", "0-25%")}
@@ -345,12 +377,17 @@ function updateLegend() {
 function countyStyle(feature) {
   const fips = String(feature.id || feature.properties.GEO_ID || "").slice(-5);
   const row = state.countyFluoride.get(fips);
+  const health = state.healthAccess.get(fips);
   const selected = state.selectedFeature?.type === "county" && state.selectedFeature.id === fips;
   return selected ? selectedBoundaryStyle() : {
     color: "#ffffff",
     weight: 0.5,
     fillOpacity: 0.76,
-    fillColor: choroplethColor(row?.pctfluoride_2022)
+    fillColor: state.activeBoundary === "food"
+      ? foodAccessColor(health?.limited_healthy_food_pct)
+      : state.activeBoundary === "dental"
+        ? dentalAccessColor(health?.dentists_per_100k)
+        : choroplethColor(row?.pctfluoride_2022)
   };
 }
 
@@ -403,6 +440,7 @@ function clearSelection() {
   const selected = state.selectedFeature;
   state.selectedFeature = null;
   els.selectedDetails.textContent = selectedPrompt();
+  els.healthSummary.textContent = "Select a county to view healthy-food and dental-care access.";
   map.closePopup();
   if (selected?.type === "well" && selected.layer) {
     selected.layer.setStyle(wellBaseStyle(selected.layer.feature));
@@ -435,6 +473,49 @@ function choroplethColor(value) {
   if (n >= 0.5) return "#74b7a1";
   if (n >= 0.25) return "#bfe3cf";
   return "#edf7f1";
+}
+
+function foodAccessColor(value) {
+  const n = numeric(value);
+  if (!Number.isFinite(n)) return "#c8ced1";
+  if (n > 20) return "#b4473a";
+  if (n > 10) return "#e2b84b";
+  if (n > 5) return "#8bc5a9";
+  return "#1f7a7a";
+}
+
+function dentalAccessColor(value) {
+  const n = numeric(value);
+  if (!Number.isFinite(n)) return "#c8ced1";
+  if (n >= 70) return "#1f7a7a";
+  if (n >= 50) return "#8bc5a9";
+  if (n >= 30) return "#e2b84b";
+  return "#b4473a";
+}
+
+function showHealthDetails(health) {
+  els.healthSummary.innerHTML = detailGrid({
+    "Limited healthy food access": healthPercent(health?.limited_healthy_food_pct),
+    "Food environment index": healthNumber(health?.food_environment_index, 1, " / 10"),
+    "Dentists per 100,000": healthNumber(health?.dentists_per_100k, 1),
+    "Population per dentist": wholeNumber(health?.population_per_dentist),
+    "Release year": valueOrBlank(health?.year)
+  });
+}
+
+function healthPercent(value) {
+  const n = numeric(value);
+  return Number.isFinite(n) ? `${n.toFixed(1)}%` : "NA";
+}
+
+function healthNumber(value, decimals = 1, suffix = "") {
+  const n = numeric(value);
+  return Number.isFinite(n) ? `${n.toFixed(decimals)}${suffix}` : "NA";
+}
+
+function wholeNumber(value) {
+  const n = numeric(value);
+  return Number.isFinite(n) ? Math.round(n).toLocaleString() : "NA";
 }
 
 function wellBaseStyle(feature) {
