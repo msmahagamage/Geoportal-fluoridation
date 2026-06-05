@@ -15,8 +15,8 @@ For limited sharing, keep the GitHub repository private and add only the intende
 If GitHub Pages is not enabled, run the geoportal from your computer with a local web server:
 
 ```powershell
-cd D:\fluoridation
-& "C:\Users\mmahagamage\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" -m http.server 8877 --bind 127.0.0.1
+cd D:\Geoportal-fluoridation
+python -m http.server 8877 --bind 127.0.0.1
 ```
 
 Then open:
@@ -45,5 +45,5 @@ After adding real files, either upload them inside the app or update `scripts/pr
 ## Rebuild Processed Data
 
 ```powershell
-& "C:\Users\mmahagamage\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" scripts\prepare_data.py --raw-data "D:\fluoridation\data" --output data\processed
+python scripts\prepare_data.py --raw-data "D:\fluoridation\data" --output data\processed
 ```
