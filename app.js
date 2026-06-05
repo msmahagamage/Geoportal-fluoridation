@@ -7,6 +7,8 @@ const DATA = {
   stateGeo: "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
 };
 
+const DATA_VERSION = "20260605-state-source-1";
+
 const HOME_VIEW = {
   center: [39.5, -98.35],
   zoom: 4
@@ -109,7 +111,8 @@ els.pwsUpload.addEventListener("change", async (event) => {
 });
 
 function fetchJson(url) {
-  return fetch(url).then((res) => {
+  const requestUrl = url.startsWith("data/") ? `${url}?v=${DATA_VERSION}` : url;
+  return fetch(requestUrl, { cache: "no-store" }).then((res) => {
     if (!res.ok) throw new Error(`${url} returned ${res.status}`);
     return res.json();
   });
@@ -166,7 +169,7 @@ function addStateLayer(geojson) {
         toggleSelection("state", abbr, layer, detailGrid({
           "State": `${feature.properties.name || abbr} (${abbr || "NA"})`,
           "Counties": valueOrBlank(row?.county_count),
-          "Average fluoridated": percent(row?.avg_pctfluoride_2022)
+          "State fluoridation": statePercent(row?.pctfluoride_2022)
         }));
       });
     }
@@ -332,8 +335,16 @@ function updateMetrics() {
     els.metricAverage.textContent = average([...state.healthAccess.values()].map((row) => row.dentists_per_100k)).toFixed(1);
     els.metricAverageLabel.textContent = "Avg dentists per 100k";
   } else {
-    els.metricAverage.textContent = percent(average(counties.map((row) => row.pctfluoride_2022)));
-    els.metricAverageLabel.textContent = "Avg county fluoridation";
+    if (state.activeBoundary === "state") {
+      const selectedStateRow = selectedState ? state.stateFluoride.get(selectedState) : null;
+      els.metricAverage.textContent = selectedStateRow
+        ? statePercent(selectedStateRow.pctfluoride_2022)
+        : [...state.stateFluoride.values()].filter((row) => Number.isFinite(numeric(row.pctfluoride_2022))).length.toLocaleString();
+      els.metricAverageLabel.textContent = selectedStateRow ? "State fluoridation" : "States with fluoridation data";
+    } else {
+      els.metricAverage.textContent = percent(average(counties.map((row) => row.pctfluoride_2022)));
+      els.metricAverageLabel.textContent = "Avg county fluoridation";
+    }
   }
 }
 
@@ -399,7 +410,7 @@ function stateStyle(feature) {
     color: "#ffffff",
     weight: 1,
     fillOpacity: 0.78,
-    fillColor: choroplethColor(row?.avg_pctfluoride_2022)
+    fillColor: choroplethColor(row?.pctfluoride_2022)
   };
 }
 
@@ -545,6 +556,11 @@ function radiusFor(value) {
 function percent(value) {
   const n = numeric(value);
   return Number.isFinite(n) ? `${Math.round(n * 100)}%` : "NA";
+}
+
+function statePercent(value) {
+  const n = numeric(value);
+  return Number.isFinite(n) ? `${(n * 100).toFixed(1)}%` : "NA";
 }
 
 function numeric(value) {

@@ -68,23 +68,31 @@ def build_groundwater(raw_data, output):
 
 
 def build_fluoride(raw_data, output):
-    source = raw_data / "COUNTY FLUORIDE_2022.dta"
-    df = pd.read_stata(source)
+    county_source = raw_data / "COUNTY FLUORIDE_2022.dta"
+    df = pd.read_stata(county_source)
     df["fips"] = df["fipscode"].astype(int).astype(str).str.zfill(5)
+    df = df[~df["fips"].str.endswith("000")].copy()
     county_rows = df[["fips", "state", "county", "pctfluoride_2022"]].to_dict(orient="records")
     for row in county_rows:
         row["pctfluoride_2022"] = None if pd.isna(row["pctfluoride_2022"]) else round(float(row["pctfluoride_2022"]), 4)
     write_json(output / "county_fluoride_2022.json", county_rows)
 
-    state_rows = (
-        df.groupby("state", as_index=False)
-        .agg(avg_pctfluoride_2022=("pctfluoride_2022", "mean"), county_count=("fips", "count"))
-        .sort_values("state")
-        .to_dict(orient="records")
-    )
+    state_lookup = dict(zip(df["statecode"].astype(int), df["state"]))
+    county_counts = df.groupby("statecode")["fips"].count().to_dict()
+    state_df = pd.read_stata(raw_data / "state_fluoride_2022.dta")
+    state_rows = []
+    for row in state_df.itertuples(index=False):
+        state_code = int(row.fipscode)
+        state_rows.append({
+            "state": state_lookup.get(state_code),
+            "state_name": row.state,
+            "pctfluoride_2022": round(float(row.pctfluoride_2022) / 100, 4),
+            "county_count": int(county_counts.get(state_code, 0))
+        })
+    state_rows.sort(key=lambda row: row["state"] or "")
     for row in state_rows:
-        row["avg_pctfluoride_2022"] = None if pd.isna(row["avg_pctfluoride_2022"]) else round(float(row["avg_pctfluoride_2022"]), 4)
-        row["county_count"] = int(row["county_count"])
+        if row["state"] is None:
+            raise ValueError(f"Could not match state FIPS for {row['state_name']}")
     write_json(output / "state_fluoride_2022.json", state_rows)
 
 
@@ -120,7 +128,7 @@ def write_json(path, data):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--raw-data", default="D:/fluoridation/data")
+    parser.add_argument("--raw-data", default="data/raw")
     parser.add_argument("--output", default="data/processed")
     args = parser.parse_args()
     raw_data = Path(args.raw_data)
