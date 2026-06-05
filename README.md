@@ -46,4 +46,6 @@ County healthy-food and dental-care access are built into the geoportal. Update 
 python scripts\prepare_data.py
 ```
 
-Raw source datasets belong in `data/raw/`. This folder is excluded from GitHub.
+Raw source datasets belong in `data/raw/`. The corrected
+`McMahon_Fluoride_in_Groundwater_Data.csv` is included in GitHub; the other raw
+source datasets remain excluded.

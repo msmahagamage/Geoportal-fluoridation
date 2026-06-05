@@ -1,3 +1,4 @@
 __pycache__/
 *.py[cod]
-data/raw/
+data/raw/*
+!data/raw/McMahon_Fluoride_in_Groundwater_Data.csv
