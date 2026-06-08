@@ -7,12 +7,12 @@ const DATA = {
   stateGeo: "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
 };
 
-const DATA_VERSION = "20260608-well-aggregation-2";
+const DATA_VERSION = "20260608-responsive-home-extent";
 
-const HOME_VIEW = {
-  center: [37.8, -96.2],
-  zoom: 5.25
-};
+const HOME_BOUNDS = [
+  [24.2, -125.4],
+  [49.7, -66.6]
+];
 
 const state = {
   countyFluoride: new Map(),
@@ -37,7 +37,7 @@ const map = L.map("map", {
   preferCanvas: true,
   zoomSnap: 0.25,
   zoomDelta: 0.5
-}).setView(HOME_VIEW.center, HOME_VIEW.zoom);
+});
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
   attribution: "&copy; OpenStreetMap contributors"
@@ -48,6 +48,7 @@ map.createPane("wellPane");
 map.getPane("wellPane").style.zIndex = 430;
 addHomeControl();
 addInfoControl();
+fitHomeView({ animate: false });
 let skipNextMapIdentify = false;
 let cursorMoveFrame = null;
 
@@ -118,6 +119,9 @@ map.on("dragstart", () => {
 map.on("dragend", () => {
   state.isDragging = false;
   clearMapCursor();
+});
+map.on("resize", () => {
+  if (!els?.stateFilter?.value) fitHomeView({ animate: false });
 });
 els.demoClose.addEventListener("click", closeDemo);
 els.demoOverlay.addEventListener("click", (event) => {
@@ -487,7 +491,7 @@ function resetHome() {
   els.wellToggle.checked = true;
   updateWellFilterVisibility();
   map.closePopup();
-  map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
+  fitHomeView();
   clearSelection();
   switchBoundary("state");
   refreshWells();
@@ -501,7 +505,7 @@ function handleStateFilterChange() {
     document.querySelector("input[name='wellDisplay'][value='summary']").checked = true;
     resetWellFilters();
     updateWellFilterVisibility();
-    map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
+    fitHomeView();
     return;
   }
   document.querySelector("input[name='wellDisplay'][value='individual']").checked = true;
@@ -513,8 +517,27 @@ function fitSelectedState() {
   const abbr = els.stateFilter.value;
   const bounds = state.stateBounds.get(abbr);
   if (bounds) {
-    map.fitBounds(bounds, { padding: [28, 28], maxZoom: 7 });
+    map.fitBounds(bounds, { padding: selectedStatePadding(), maxZoom: 7 });
   }
+}
+
+function fitHomeView(options = {}) {
+  const size = map.getSize();
+  const horizontalPad = Math.max(24, Math.round(size.x * 0.04));
+  const verticalPad = Math.max(20, Math.round(size.y * 0.045));
+  map.fitBounds(HOME_BOUNDS, {
+    animate: options.animate ?? true,
+    paddingTopLeft: [horizontalPad, verticalPad],
+    paddingBottomRight: [horizontalPad, verticalPad],
+    maxZoom: 5
+  });
+}
+
+function selectedStatePadding() {
+  const size = map.getSize();
+  const xPad = Math.max(24, Math.round(size.x * 0.045));
+  const yPad = Math.max(22, Math.round(size.y * 0.06));
+  return [xPad, yPad];
 }
 
 function addHomeControl() {
