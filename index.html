@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluoridation Geoportal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css?v=20260608-square-checkbox">
+    <link rel="stylesheet" href="styles.css?v=20260608-layer-groups">
   </head>
   <body>
     <aside class="sidebar">
@@ -16,11 +16,24 @@
 
       <section class="panel">
         <h2>Layers</h2>
-        <label><input type="checkbox" id="wellToggle" checked> Groundwater wells</label>
-        <label><input type="radio" name="boundaryLayer" value="county"> County fluoridation</label>
-        <label><input type="radio" name="boundaryLayer" value="state" checked> State fluoridation</label>
-        <label><input type="radio" name="boundaryLayer" value="food"> Limited healthy food access</label>
-        <label><input type="radio" name="boundaryLayer" value="dental"> Dental care access</label>
+        <div class="layerGroup">
+          <p class="layerGroupTitle">Untreated groundwater wells</p>
+          <label><input type="checkbox" id="wellToggle" checked> Groundwater wells</label>
+        </div>
+        <div class="layerGroup">
+          <p class="layerGroupTitle">Polygon overlay</p>
+          <label><input type="radio" name="boundaryLayer" value="none"> No polygon layer</label>
+        </div>
+        <div class="layerGroup">
+          <p class="layerGroupTitle">Community water fluoridation</p>
+          <label><input type="radio" name="boundaryLayer" value="state" checked> State fluoridation</label>
+          <label><input type="radio" name="boundaryLayer" value="county"> County fluoridation</label>
+        </div>
+        <div class="layerGroup">
+          <p class="layerGroupTitle">County health access indicators</p>
+          <label><input type="radio" name="boundaryLayer" value="food"> Limited healthy food access</label>
+          <label><input type="radio" name="boundaryLayer" value="dental"> Dental care access</label>
+        </div>
       </section>
 
       <section class="panel">
@@ -83,7 +96,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-square-layer-controls"></script>
+    <script src="app.js?v=20260608-layer-groups"></script>
   </body>
 </html>
 

@@ -79,6 +79,24 @@ h3 {
   font-size: 0.94rem;
 }
 
+.layerGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.layerGroup + .layerGroup {
+  margin-top: 4px;
+}
+
+.layerGroupTitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .panel label:has(input) {
   display: flex;
   align-items: center;

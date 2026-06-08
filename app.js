@@ -222,10 +222,21 @@ function switchBoundary(layerName) {
   if (state.selectedFeature && state.selectedFeature.type !== "well") {
     clearSelection();
   }
+  const previousBoundary = state.activeBoundary;
   state.activeBoundary = layerName;
   if (state.countyLayer) map.removeLayer(state.countyLayer);
   if (state.stateLayer) map.removeLayer(state.stateLayer);
-  if (layerName === "county" || layerName === "food" || layerName === "dental") {
+  if (layerName === "none") {
+    els.viewTitle.textContent = "Untreated Groundwater Wells";
+    document.querySelector("input[name='identifyMode'][value='wells']").checked = true;
+    state.identifyMode = "wells";
+    updateIdentifyInteractivity();
+  } else if (layerName === "county" || layerName === "food" || layerName === "dental") {
+    if (previousBoundary === "none") {
+      document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
+      state.identifyMode = "boundaries";
+      updateIdentifyInteractivity();
+    }
     state.countyLayer.addTo(map);
     els.viewTitle.textContent = layerName === "food"
       ? "Limited Healthy Food Access"
@@ -233,6 +244,11 @@ function switchBoundary(layerName) {
         ? "Dental Care Access"
         : "County Fluoridation";
   } else {
+    if (previousBoundary === "none") {
+      document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
+      state.identifyMode = "boundaries";
+      updateIdentifyInteractivity();
+    }
     state.stateLayer.addTo(map);
     els.viewTitle.textContent = "State Fluoridation";
   }
@@ -451,7 +467,10 @@ function updateMetrics() {
   els.metricCounties.textContent = counties.length.toLocaleString();
   els.metricWells.textContent = wells.toLocaleString();
   els.metricWellsLabel.textContent = state.currentWellDisplay === "summary" ? "Wells summarized" : "Visible wells";
-  if (state.activeBoundary === "food") {
+  if (state.activeBoundary === "none") {
+    els.metricAverage.textContent = "--";
+    els.metricAverageLabel.textContent = "No polygon layer";
+  } else if (state.activeBoundary === "food") {
     els.metricAverage.textContent = `${average([...state.healthAccess.values()].map((row) => row.limited_healthy_food_pct)).toFixed(1)}%`;
     els.metricAverageLabel.textContent = "Avg limited food access";
   } else if (state.activeBoundary === "dental") {
@@ -497,6 +516,20 @@ function updateLegend() {
       <hr>
       ${wellLegendRows()}
       ${wellSummaryNotes()}
+    `;
+    return;
+  }
+  if (state.activeBoundary === "none") {
+    els.legend.innerHTML = `
+      <strong>Untreated groundwater wells</strong>
+      ${legendRow("#3465a4", "Below 0.7 mg/L")}
+      ${legendRow("#c78b1c", "0.7-2.0 mg/L")}
+      ${legendRow("#b4473a", "Above 2.0 mg/L")}
+      ${state.currentWellDisplay === "summary" ? `
+        <hr>
+        <div class="legendNote">State summary color = average well fluoride</div>
+        <div class="legendNote">State summary size = number of wells</div>
+      ` : ""}
     `;
     return;
   }
@@ -605,6 +638,7 @@ function clearSelection() {
 }
 
 function selectedPrompt() {
+  if (state.activeBoundary === "none") return "Select a groundwater well on the map.";
   return state.identifyMode === "wells"
     ? "Select a groundwater well on the map."
     : "Select a county or state boundary on the map.";
