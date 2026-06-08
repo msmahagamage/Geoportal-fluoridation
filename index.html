@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluoridation Geoportal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260608-square-checkbox">
   </head>
   <body>
     <aside class="sidebar">
@@ -16,11 +16,11 @@
 
       <section class="panel">
         <h2>Layers</h2>
+        <label><input type="checkbox" id="wellToggle" checked> Groundwater wells</label>
         <label><input type="radio" name="boundaryLayer" value="county"> County fluoridation</label>
         <label><input type="radio" name="boundaryLayer" value="state" checked> State fluoridation</label>
         <label><input type="radio" name="boundaryLayer" value="food"> Limited healthy food access</label>
         <label><input type="radio" name="boundaryLayer" value="dental"> Dental care access</label>
-        <label><input type="checkbox" id="wellToggle" checked> Groundwater wells</label>
       </section>
 
       <section class="panel">
@@ -50,11 +50,6 @@
         <output id="fluorideRangeValue">0.0</output>
       </section>
 
-      <section class="panel">
-        <h2>Additional Data</h2>
-        <label for="pwsUpload">Public water system reports CSV</label>
-        <input id="pwsUpload" type="file" accept=".csv">
-      </section>
     </aside>
 
     <main class="workspace">
@@ -81,10 +76,6 @@
           <div id="selectedDetails" class="detailBox">Select a county or state boundary on the map.</div>
         </article>
         <article>
-          <h3>Public Water System Reports</h3>
-          <div id="pwsSummary" class="detailBox">Upload a public water system CSV to inspect individual reports.</div>
-        </article>
-        <article>
           <h3>County Access Indicators</h3>
           <div id="healthSummary" class="detailBox">Select a county to view healthy-food and dental-care access.</div>
         </article>
@@ -92,6 +83,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-well-aggregation-2"></script>
+    <script src="app.js?v=20260608-square-layer-controls"></script>
   </body>
 </html>
+

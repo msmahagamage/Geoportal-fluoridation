@@ -79,6 +79,45 @@ h3 {
   font-size: 0.94rem;
 }
 
+.panel label:has(input) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.panel input[type="radio"],
+#wellToggle {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  margin: 3px 3px 3px 4px;
+  border: 1.5px solid #7a8b93;
+  border-radius: 2px;
+  background: #fff;
+  display: inline-grid;
+  place-content: center;
+}
+
+.panel input[type="radio"]::before,
+#wellToggle::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  transform: scale(0);
+  background: #0d6efd;
+}
+
+.panel input[type="radio"]:checked,
+#wellToggle:checked {
+  border-color: #0d6efd;
+}
+
+.panel input[type="radio"]:checked::before,
+#wellToggle:checked::before {
+  transform: scale(1);
+}
+
 select,
 input[type="file"],
 input[type="range"] {
@@ -193,7 +232,7 @@ output {
 
 .details {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   padding: 18px 24px 24px;
   border-top: 1px solid var(--line);
@@ -268,3 +307,5 @@ output {
     grid-template-columns: 1fr;
   }
 }
+
+

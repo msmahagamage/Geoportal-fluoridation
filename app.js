@@ -57,9 +57,7 @@ const els = {
   metricAverageLabel: document.getElementById("metricAverageLabel"),
   selectedDetails: document.getElementById("selectedDetails"),
   healthSummary: document.getElementById("healthSummary"),
-  pwsSummary: document.getElementById("pwsSummary"),
-  legend: document.getElementById("legend"),
-  pwsUpload: document.getElementById("pwsUpload")
+  legend: document.getElementById("legend")
 };
 
 Promise.all([
@@ -116,17 +114,6 @@ els.stateFilter.addEventListener("input", () => {
   refreshWells();
   restyleBoundaries();
   updateMetrics();
-});
-
-els.pwsUpload.addEventListener("change", async (event) => {
-  const rows = await readCsvFile(event.target.files[0]);
-  const systems = new Set(rows.map((row) => clean(row.pws_id || row.PWSID || row.system_id || row.system_name)).filter(Boolean));
-  const avg = average(rows.map((row) => numeric(row.fluoride_mg_l || row.fluoride || row.avg_fluoride)));
-  els.pwsSummary.innerHTML = detailGrid({
-    "Reports": rows.length.toLocaleString(),
-    "Systems": systems.size.toLocaleString(),
-    "Average fluoride": Number.isFinite(avg) ? `${avg.toFixed(2)} mg/L` : "Not available"
-  });
 });
 
 function fetchJson(url) {
@@ -493,6 +480,9 @@ function updateLegend() {
       ${legendRow("#e2b84b", "10-20%")}
       ${legendRow("#b4473a", "Above 20%")}
       ${legendRow("#c8ced1", "No data")}
+      <hr>
+      ${wellLegendRows()}
+      ${wellSummaryNotes()}
     `;
     return;
   }
@@ -504,6 +494,9 @@ function updateLegend() {
       ${legendRow("#8bc5a9", "50-70")}
       ${legendRow("#1f7a7a", "70 or more")}
       ${legendRow("#c8ced1", "No data")}
+      <hr>
+      ${wellLegendRows()}
+      ${wellSummaryNotes()}
     `;
     return;
   }
@@ -515,14 +508,25 @@ function updateLegend() {
     ${legendRow("#1f7a7a", "75-100%")}
     ${legendRow("#c8ced1", "No data")}
     <hr>
-    ${legendRow("#3465a4", "Wells below 0.7 mg/L")}
-    ${legendRow("#c78b1c", "Wells 0.7-2.0 mg/L")}
-    ${legendRow("#b4473a", "Wells above 2.0 mg/L")}
-    ${state.currentWellDisplay === "summary" ? `
-      <hr>
-      <div class="legendNote">State summary color = average well fluoride</div>
-      <div class="legendNote">State summary size = number of wells</div>
-    ` : ""}
+    ${wellLegendRows()}
+    ${wellSummaryNotes()}
+  `;
+}
+
+function wellLegendRows() {
+  return `
+    ${legendCircle("#3465a4", "Wells below 0.7 mg/L")}
+    ${legendCircle("#c78b1c", "Wells 0.7-2.0 mg/L")}
+    ${legendCircle("#b4473a", "Wells above 2.0 mg/L")}
+  `;
+}
+
+function wellSummaryNotes() {
+  if (state.currentWellDisplay !== "summary") return "";
+  return `
+    <hr>
+    <div class="legendNote">State summary color = average well fluoride</div>
+    <div class="legendNote">State summary size = number of wells</div>
   `;
 }
 
@@ -749,47 +753,6 @@ function legendCircle(color, label) {
   return `<div class="legendRow"><span class="circleSwatch" style="background:${color}"></span>${label}</div>`;
 }
 
-async function readCsvFile(file) {
-  if (!file) return [];
-  const text = await file.text();
-  return parseCsv(text);
-}
-
-function parseCsv(text) {
-  const rows = [];
-  const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
-  const headers = splitCsvLine(lines.shift()).map(clean);
-  lines.forEach((line) => {
-    const values = splitCsvLine(line);
-    const row = {};
-    headers.forEach((header, index) => row[header] = values[index] ?? "");
-    rows.push(row);
-  });
-  return rows;
-}
-
-function splitCsvLine(line) {
-  const values = [];
-  let current = "";
-  let quoted = false;
-  for (let i = 0; i < line.length; i += 1) {
-    const char = line[i];
-    if (char === '"' && line[i + 1] === '"') {
-      current += '"';
-      i += 1;
-    } else if (char === '"') {
-      quoted = !quoted;
-    } else if (char === "," && !quoted) {
-      values.push(current);
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-  values.push(current);
-  return values.map(clean);
-}
-
 function stateNameToAbbr(name) {
   const lookup = {
     Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
@@ -806,3 +769,4 @@ function stateNameToAbbr(name) {
   };
   return lookup[name] || name;
 }
+
