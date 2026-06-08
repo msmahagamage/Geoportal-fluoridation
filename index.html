@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluoridation Geoportal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css?v=20260608-realistic-demo">
+    <link rel="stylesheet" href="styles.css?v=20260608-user-demo-videos">
   </head>
   <body>
     <aside class="sidebar">
@@ -83,76 +83,51 @@
         <h2 id="demoTitle">How to use the geoportal</h2>
         <div class="demoSteps">
           <article>
-            <div class="demoVisual demoLayers" aria-hidden="true">
-              <div class="demoLayerList">
-                <i><b></b><em></em></i>
-                <i><b></b><em></em></i>
-                <i><b></b><em></em></i>
-              </div>
-              <div class="demoRealMap">
-                <span class="demoPoly one"></span>
-                <span class="demoPoly two"></span>
-                <span class="demoWell p1"></span>
-                <span class="demoWell p2"></span>
-                <span class="demoWell p3"></span>
-              </div>
+            <div class="demoVideoWrap">
+              <video class="demoVideo" controls preload="metadata" poster="assets/demo/layers-0.jpg">
+                <source src="assets/demo/choose-layers.mp4" type="video/mp4">
+              </video>
             </div>
             <span>1</span>
             <h3>Choose layers</h3>
-            <p>Turn groundwater wells, fluoridation, and county health indicators on or off from the Layers panel.</p>
+            <p>Use the layer checkboxes to show groundwater wells, fluoridation, or health access layers on the map.</p>
           </article>
           <article>
-            <div class="demoVisual demoFilters" aria-hidden="true">
-              <div class="demoModeTabs">
-                <i>State summaries</i>
-                <i>Individual wells</i>
-              </div>
-              <div class="demoSummaryDots">
-                <b></b><b></b><b></b>
-              </div>
-              <div class="demoIndividualDots">
-                <b></b><b></b><b></b><b></b><b></b><b></b>
-              </div>
-              <div class="demoSlider"></div>
+            <div class="demoVideoWrap">
+              <video class="demoVideo" controls preload="metadata" poster="assets/demo/wells-0.jpg">
+                <source src="assets/demo/explore-wells.mp4" type="video/mp4">
+              </video>
             </div>
             <span>2</span>
             <h3>Explore wells</h3>
-            <p>Use State summaries for an overview, or switch to Individual wells to filter by state, well type, and fluoride category.</p>
+            <p>Start with State summaries, then switch to Individual wells to see point locations and use the filters.</p>
           </article>
           <article>
-            <div class="demoVisual demoSelect" aria-hidden="true">
-              <div class="demoRealMap selectMap">
-                <span class="demoPoly one"></span>
-                <span class="demoPoly two"></span>
-                <span class="demoWell p1"></span>
-                <span class="demoWell p2"></span>
-                <span class="demoWell p3"></span>
-              </div>
-              <div class="demoPopupMini">
-                <i></i><i></i><i></i>
-              </div>
-              <div class="demoSelectedPoint"></div>
+            <div class="demoVideoWrap">
+              <video class="demoVideo" controls preload="metadata" poster="assets/demo/select-0.jpg">
+                <source src="assets/demo/select-features.mp4" type="video/mp4">
+              </video>
             </div>
             <span>3</span>
             <h3>Select features</h3>
-            <p>Click a state, county, or well point to open details. Selected wells are highlighted with a ring.</p>
+            <p>Click a polygon or well point to open details. Selected wells are highlighted with a ring.</p>
           </article>
           <article>
-            <div class="demoVisual demoReset" aria-hidden="true">
-              <div class="demoZoomMini">+<em>-</em></div>
-              <div class="demoHomeMini">H</div>
-              <div class="demoExtentBox"></div>
+            <div class="demoVideoWrap">
+              <video class="demoVideo" controls preload="metadata" poster="assets/demo/reset-0.jpg">
+                <source src="assets/demo/reset-map.mp4" type="video/mp4">
+              </video>
             </div>
             <span>4</span>
             <h3>Reset the map</h3>
-            <p>Use the H button beside the zoom control to return to the default national view.</p>
+            <p>Click H to return to the default national view.</p>
           </article>
         </div>
       </section>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-realistic-demo"></script>
+    <script src="app.js?v=20260608-user-demo-videos"></script>
   </body>
 </html>
 

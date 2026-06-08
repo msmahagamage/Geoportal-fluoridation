@@ -1049,4 +1049,371 @@ output {
   }
 }
 
+/* Quick Demo local refinement: calmer, closer to the real geoportal workflow. */
+.demoDialog {
+  width: min(960px, 100%);
+  padding: 24px;
+}
+
+.demoDialog h2 {
+  margin-bottom: 14px;
+}
+
+.demoSteps {
+  gap: 14px;
+}
+
+.demoSteps article {
+  grid-template-columns: 30px 1fr;
+  gap: 8px 12px;
+  padding: 14px;
+  background: #fff;
+}
+
+.demoSteps span {
+  width: 30px;
+  height: 30px;
+  margin-top: 0;
+}
+
+.demoSteps h3 {
+  align-self: center;
+  font-size: 1rem;
+}
+
+.demoSteps p {
+  grid-column: 2;
+  font-size: 0.9rem;
+}
+
+.demoVisual {
+  height: 112px;
+  border-color: #cad8d5;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.08)),
+    repeating-linear-gradient(0deg, rgba(96, 113, 122, 0.07) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, rgba(96, 113, 122, 0.07) 0 1px, transparent 1px 32px),
+    #eef5f3;
+}
+
+.demoVisual::after {
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.18));
+}
+
+.demoVideoWrap {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  border: 1px solid #cad8d5;
+  border-radius: 8px;
+  background: #101820;
+}
+
+.demoVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 210px;
+  background: #101820;
+}
+
+.demoLayerList {
+  left: 14px;
+  top: 14px;
+  width: 132px;
+  gap: 9px;
+}
+
+.demoLayerList i:nth-child(1) b,
+.demoLayerList i:nth-child(2) b {
+  animation: demoCheckboxToggle 5.8s infinite ease-in-out;
+}
+
+.demoLayerList i:nth-child(3) b {
+  animation: demoCheckboxToggleLate 5.8s infinite ease-in-out;
+}
+
+.demoRealMap {
+  right: 16px;
+  top: 13px;
+  width: 210px;
+  height: 86px;
+  background:
+    linear-gradient(120deg, transparent 0 44%, rgba(255, 255, 255, 0.72) 44% 47%, transparent 47%),
+    #ddeee6;
+}
+
+.demoLayers .demoPoly {
+  animation: demoLayerPolygons 5.8s infinite ease-in-out;
+}
+
+.demoLayers .demoWell {
+  animation: demoLayerWells 5.8s infinite ease-in-out;
+}
+
+.demoWell.p1 { left: 42px; top: 30px; }
+.demoWell.p2 { left: 92px; top: 52px; }
+.demoWell.p3 { right: 44px; top: 25px; }
+
+.demoModeTabs {
+  left: 16px;
+  top: 14px;
+}
+
+.demoModeTabs i {
+  font-size: 0.72rem;
+}
+
+.demoSummaryDots b:nth-child(1) { left: 90px; top: 57px; }
+.demoSummaryDots b:nth-child(2) { left: 154px; top: 46px; }
+.demoSummaryDots b:nth-child(3) { right: 44px; top: 58px; }
+
+.demoIndividualDots b:nth-child(1) { left: 98px; top: 50px; }
+.demoIndividualDots b:nth-child(2) { left: 124px; top: 70px; }
+.demoIndividualDots b:nth-child(3) { left: 154px; top: 55px; }
+.demoIndividualDots b:nth-child(4) { left: 188px; top: 74px; }
+.demoIndividualDots b:nth-child(5) { left: 224px; top: 54px; }
+.demoIndividualDots b:nth-child(6) { left: 260px; top: 76px; }
+
+.demoFilters .demoSlider {
+  left: 16px;
+  bottom: 15px;
+  width: 112px;
+}
+
+.demoFilters .demoSlider::after {
+  animation: demoSliderMoveCalm 5.8s infinite ease-in-out;
+}
+
+.demoSelect .selectMap {
+  left: 14px;
+  top: 13px;
+  width: 210px;
+  height: 86px;
+}
+
+.demoSelect .demoWell.p1 { left: 48px; top: 34px; }
+.demoSelect .demoWell.p2 { left: 98px; top: 56px; }
+.demoSelect .demoWell.p3 { right: 50px; top: 28px; }
+
+.demoSelect .demoPopupMini {
+  left: 230px;
+  top: 20px;
+  width: 128px;
+  animation: demoPopupPulseCalm 5.8s infinite ease-in-out;
+}
+
+.demoSelect .demoSelectedPoint {
+  left: 105px;
+  bottom: 42px;
+  animation: demoSelectedPulseCalm 5.8s infinite ease-in-out;
+}
+
+.demoReset .demoZoomMini {
+  display: none;
+}
+
+.demoReset .demoHomeMini {
+  left: 22px;
+  top: 42px;
+  width: 38px;
+  height: 38px;
+  line-height: 37px;
+  font-size: 1.05rem;
+}
+
+.demoReset .demoExtentBox {
+  right: 44px;
+  top: 24px;
+  width: 190px;
+  height: 68px;
+  border-color: #3f6fa8;
+  background: rgba(63, 111, 168, 0.1);
+  animation: demoExtentZoomCalm 5.8s infinite ease-in-out;
+}
+
+@keyframes demoCheckboxToggle {
+  0%, 18%, 100% { background: #fff; box-shadow: none; }
+  32%, 84% { background: #3f6fa8; box-shadow: inset 0 0 0 2px #fff; }
+}
+
+@keyframes demoCheckboxToggleLate {
+  0%, 45%, 100% { background: #fff; box-shadow: none; }
+  58%, 84% { background: #3f6fa8; box-shadow: inset 0 0 0 2px #fff; }
+}
+
+@keyframes demoSliderMoveCalm {
+  0%, 45%, 100% { left: 6px; }
+  58%, 84% { left: 72px; }
+}
+
+@keyframes demoPopupPulseCalm {
+  0%, 35%, 100% { opacity: 0; transform: translateY(4px); }
+  48%, 86% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes demoSelectedPulseCalm {
+  0%, 35%, 100% { box-shadow: 0 0 0 4px #fff; }
+  48%, 86% { box-shadow: 0 0 0 5px #fff, 0 0 0 9px rgba(16, 24, 32, 0.22); }
+}
+
+.demoPlay {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
+  z-index: 3;
+  min-width: 68px;
+  height: 28px;
+  border: 1px solid rgba(16, 24, 32, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 750;
+  font-size: 0.76rem;
+  box-shadow: 0 8px 18px rgba(23, 33, 38, 0.12);
+}
+
+.demoPlay::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: 6px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid #1f7a7a;
+  vertical-align: -1px;
+}
+
+.demoVisual.is-playing .demoPlay::before {
+  width: 8px;
+  height: 10px;
+  border: 0;
+  border-left: 3px solid #1f7a7a;
+  border-right: 3px solid #1f7a7a;
+}
+
+.demoVisual.is-paused .demoPlay::before {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid #1f7a7a;
+  border-right: 0;
+}
+
+.demoProgress {
+  position: absolute;
+  left: 88px;
+  right: 10px;
+  bottom: 20px;
+  z-index: 2;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(96, 113, 122, 0.18);
+}
+
+.demoProgress i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: #1f7a7a;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.demoLayerList i:nth-child(1) b,
+.demoLayerList i:nth-child(2) b,
+.demoLayerList i:nth-child(3) b,
+.demoLayers .demoPoly,
+.demoLayers .demoWell,
+.demoModeTabs i:nth-child(1),
+.demoModeTabs i:nth-child(2),
+.demoSummaryDots b,
+.demoIndividualDots b,
+.demoFilters .demoSlider,
+.demoFilters .demoSlider::after,
+.demoSelect .demoPopupMini,
+.demoSelect .demoSelectedPoint,
+.demoReset .demoHomeMini,
+.demoReset .demoExtentBox,
+.demoProgress i {
+  animation: none;
+}
+
+.demoVisual.is-playing .demoProgress i {
+  animation: demoProgressRun 5.8s linear infinite;
+}
+
+.demoVisual.is-playing.demoLayers .demoLayerList i:nth-child(1) b,
+.demoVisual.is-playing.demoLayers .demoLayerList i:nth-child(2) b {
+  animation: demoCheckboxToggle 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoLayers .demoLayerList i:nth-child(3) b {
+  animation: demoCheckboxToggleLate 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoLayers .demoPoly {
+  animation: demoLayerPolygons 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoLayers .demoWell {
+  animation: demoLayerWells 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoFilters .demoModeTabs i:nth-child(1) {
+  animation: demoSummaryTab 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoFilters .demoModeTabs i:nth-child(2) {
+  animation: demoIndividualTab 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoFilters .demoSummaryDots b {
+  animation: demoSummaryDots 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoFilters .demoIndividualDots b {
+  animation: demoIndividualDots 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoFilters .demoSlider {
+  animation: demoFilterPanelAppear 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoFilters .demoSlider::after {
+  animation: demoSliderMoveCalm 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoSelect .demoPopupMini {
+  animation: demoPopupPulseCalm 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoSelect .demoSelectedPoint {
+  animation: demoSelectedPulseCalm 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoReset .demoHomeMini {
+  animation: demoHomePulse 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-playing.demoReset .demoExtentBox {
+  animation: demoExtentZoomCalm 5.8s infinite ease-in-out;
+}
+
+.demoVisual.is-paused,
+.demoVisual.is-paused *,
+.demoVisual.is-paused *::before,
+.demoVisual.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@keyframes demoProgressRun {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
 

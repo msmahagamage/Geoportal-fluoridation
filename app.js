@@ -67,7 +67,8 @@ const els = {
   metricAverageLabel: document.getElementById("metricAverageLabel"),
   legend: document.getElementById("legend"),
   demoOverlay: document.getElementById("demoOverlay"),
-  demoClose: document.getElementById("demoClose")
+  demoClose: document.getElementById("demoClose"),
+  demoVideos: [...document.querySelectorAll(".demoVideo")]
 };
 
 Promise.all([
@@ -124,6 +125,17 @@ els.demoOverlay.addEventListener("click", (event) => {
 });
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.demoOverlay.hidden) closeDemo();
+});
+els.demoVideos.forEach((video) => {
+  video.addEventListener("click", () => {
+    if (video.paused) video.play();
+    else video.pause();
+  });
+  video.addEventListener("play", () => {
+    els.demoVideos.forEach((other) => {
+      if (other !== video) other.pause();
+    });
+  });
 });
 
 [els.wellTypeFilter, els.fluorideRange, els.wellToggle, ...els.fluorideCategories].forEach((el) => {
@@ -552,7 +564,15 @@ function openDemo() {
 }
 
 function closeDemo() {
+  stopDemoVideos();
   els.demoOverlay.hidden = true;
+}
+
+function stopDemoVideos() {
+  els.demoVideos.forEach((video) => {
+    video.pause();
+    video.currentTime = 0;
+  });
 }
 
 function refreshWells() {
