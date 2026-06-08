@@ -145,7 +145,7 @@ function addCountyLayer(geojson) {
           "Food environment index": healthNumber(health?.food_environment_index, 1, " / 10"),
           "Dentists per 100,000": healthNumber(health?.dentists_per_100k, 1),
           "Population per dentist": wholeNumber(health?.population_per_dentist)
-        }));
+        }), event.latlng);
         if (state.selectedFeature?.type === "county" && state.selectedFeature.id === fips) {
           showHealthDetails(health);
         }
@@ -169,7 +169,7 @@ function addStateLayer(geojson) {
           "State": `${feature.properties.name || abbr} (${abbr || "NA"})`,
           "Counties": valueOrBlank(row?.county_count),
           "State fluoridation": statePercent(row?.pctfluoride_2022)
-        }));
+        }), event.latlng);
       });
     }
   });
@@ -501,7 +501,7 @@ function updateLegend() {
       ${legendRow("#3465a4", "Below 0.7 mg/L")}
       ${legendRow("#c78b1c", "0.7-2.0 mg/L")}
       ${legendRow("#b4473a", "Above 2.0 mg/L")}
-      ${wellSummaryNotes()}
+      ${wellDisplayNotes()}
     `;
     return;
   }
@@ -521,7 +521,7 @@ function wellLegendSection() {
   return `
     <hr>
     ${wellLegendRows()}
-    ${wellSummaryNotes()}
+    ${wellDisplayNotes()}
   `;
 }
 
@@ -533,13 +533,22 @@ function wellLegendRows() {
   `;
 }
 
-function wellSummaryNotes() {
-  if (state.currentWellDisplay !== "summary") return "";
-  return `
-    <hr>
-    <div class="legendNote">State summary color = average well fluoride</div>
-    <div class="legendNote">State summary size = number of wells</div>
-  `;
+function wellDisplayNotes() {
+  if (state.currentWellDisplay === "summary") {
+    return `
+      <hr>
+      <div class="legendNote">State summary color = average well fluoride</div>
+      <div class="legendNote">State summary size = number of wells</div>
+    `;
+  }
+  if (state.currentWellDisplay === "individual") {
+    return `
+      <hr>
+      <div class="legendNote">Individual well color = measured well fluoride</div>
+      <div class="legendNote">Individual well size = measured well fluoride</div>
+    `;
+  }
+  return "";
 }
 
 function countyStyle(feature) {
@@ -591,7 +600,7 @@ function selectedWellStyle(layer) {
   };
 }
 
-function toggleSelection(type, id, layer, detailsHtml) {
+function toggleSelection(type, id, layer, detailsHtml, popupLatLng = null) {
   const selected = state.selectedFeature;
   if (selected?.type === type && selected.id === id) {
     clearSelection();
@@ -601,7 +610,16 @@ function toggleSelection(type, id, layer, detailsHtml) {
   state.selectedFeature = { type, id, layer };
   els.selectedDetails.innerHTML = detailsHtml;
   applySelectedStyle();
-  if (type === "well") layer.openPopup();
+  if (type === "well") {
+    layer.openPopup();
+  } else {
+    layer.bindPopup(detailsHtml, {
+      autoPan: true,
+      closeButton: true,
+      closeOnClick: false,
+      maxWidth: 340
+    }).openPopup(popupLatLng);
+  }
 }
 
 function clearSelection() {
