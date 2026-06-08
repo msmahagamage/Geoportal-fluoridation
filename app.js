@@ -499,7 +499,11 @@ function updateLegend() {
     ${legendRow("#3465a4", "Wells below 0.7 mg/L")}
     ${legendRow("#c78b1c", "Wells 0.7-2.0 mg/L")}
     ${legendRow("#b4473a", "Wells above 2.0 mg/L")}
-    ${state.currentWellDisplay === "summary" ? legendCircle("#263238", "State well summaries") : ""}
+    ${state.currentWellDisplay === "summary" ? `
+      <hr>
+      <div class="legendNote">State summary color = average well fluoride</div>
+      <div class="legendNote">State summary size = number of wells</div>
+    ` : ""}
   `;
 }
 
