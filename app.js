@@ -27,7 +27,6 @@ const state = {
   visibleWellCount: 0,
   currentWellDisplay: "summary",
   activeBoundary: "state",
-  identifyMode: "boundaries",
   selectedFeature: null
 };
 
@@ -40,7 +39,6 @@ map.createPane("boundaryPane");
 map.getPane("boundaryPane").style.zIndex = 410;
 map.createPane("wellPane");
 map.getPane("wellPane").style.zIndex = 430;
-updateIdentifyInteractivity();
 addHomeControl();
 
 const els = {
@@ -85,10 +83,6 @@ Promise.all([
 
 document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
   input.addEventListener("change", () => handleBoundaryToggle(input));
-});
-
-document.querySelectorAll("input[name='identifyMode']").forEach((input) => {
-  input.addEventListener("change", () => switchIdentifyMode(input.value));
 });
 
 document.querySelectorAll("input[name='wellDisplay']").forEach((input) => {
@@ -139,7 +133,6 @@ function addCountyLayer(geojson) {
     style: countyStyle,
     onEachFeature: (feature, layer) => {
       layer.on("click", (event) => {
-        if (state.identifyMode !== "boundaries") return;
         L.DomEvent.stop(event.originalEvent);
         const fips = String(feature.id || feature.properties.GEO_ID || "").slice(-5);
         const row = state.countyFluoride.get(fips);
@@ -170,7 +163,6 @@ function addStateLayer(geojson) {
       const abbr = feature.properties.code || feature.properties.STATE || stateNameToAbbr(feature.properties.name);
       if (abbr) state.stateBounds.set(abbr, layer.getBounds());
       layer.on("click", (event) => {
-        if (state.identifyMode !== "boundaries") return;
         L.DomEvent.stop(event.originalEvent);
         const row = state.stateFluoride.get(abbr);
         toggleSelection("state", abbr, layer, detailGrid({
@@ -210,7 +202,6 @@ function addWellLayer(wells) {
         maxWidth: 320
       });
       layer.on("click", (event) => {
-        if (state.identifyMode !== "wells") return;
         L.DomEvent.stop(event.originalEvent);
         toggleSelection("well", p.usgs_id, layer, details);
       });
@@ -222,21 +213,12 @@ function switchBoundary(layerName) {
   if (state.selectedFeature && state.selectedFeature.type !== "well") {
     clearSelection();
   }
-  const previousBoundary = state.activeBoundary;
   state.activeBoundary = layerName;
   if (state.countyLayer) map.removeLayer(state.countyLayer);
   if (state.stateLayer) map.removeLayer(state.stateLayer);
   if (layerName === "none") {
     els.viewTitle.textContent = "Untreated Groundwater Wells";
-    document.querySelector("input[name='identifyMode'][value='wells']").checked = true;
-    state.identifyMode = "wells";
-    updateIdentifyInteractivity();
   } else if (layerName === "county" || layerName === "food" || layerName === "dental") {
-    if (previousBoundary === "none") {
-      document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
-      state.identifyMode = "boundaries";
-      updateIdentifyInteractivity();
-    }
     state.countyLayer.addTo(map);
     els.viewTitle.textContent = layerName === "food"
       ? "Limited Healthy Food Access"
@@ -244,11 +226,6 @@ function switchBoundary(layerName) {
         ? "Dental Care Access"
         : "County Fluoridation";
   } else {
-    if (previousBoundary === "none") {
-      document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
-      state.identifyMode = "boundaries";
-      updateIdentifyInteractivity();
-    }
     state.stateLayer.addTo(map);
     els.viewTitle.textContent = "State Fluoridation";
   }
@@ -271,27 +248,12 @@ function handleBoundaryToggle(input) {
   }
 }
 
-function switchIdentifyMode(mode) {
-  state.identifyMode = mode;
-  clearSelection();
-  updateIdentifyInteractivity();
-  refreshWells();
-}
-
-function updateIdentifyInteractivity() {
-  map.getPane("boundaryPane").style.pointerEvents = state.identifyMode === "boundaries" ? "auto" : "none";
-  map.getPane("wellPane").style.pointerEvents = state.identifyMode === "wells" ? "auto" : "none";
-}
-
 function resetHome() {
   document.querySelector("input[name='boundaryLayer'][value='state']").checked = true;
   document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
     input.checked = input.value === "state";
   });
-  document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
   document.querySelector("input[name='wellDisplay'][value='summary']").checked = true;
-  state.identifyMode = "boundaries";
-  updateIdentifyInteractivity();
   els.stateFilter.value = "";
   els.wellTypeFilter.value = "";
   els.fluorideRange.value = "0";
@@ -353,7 +315,10 @@ function refreshWells() {
   if (state.selectedFeature?.type === "well") clearSelection();
   state.visibleWellCount = 0;
   state.currentWellDisplay = "off";
-  if (!els.wellToggle.checked) return;
+  if (!els.wellToggle.checked) {
+    updateLegend();
+    return;
+  }
   const selectedState = els.stateFilter.value;
   const selectedType = els.wellTypeFilter.value;
   const minFluoride = Number(els.fluorideRange.value);
@@ -409,7 +374,6 @@ function addWellSummaryLayer(features) {
         maxWidth: 320
       });
       marker.on("click", (event) => {
-        if (state.identifyMode !== "wells") return;
         L.DomEvent.stop(event.originalEvent);
         els.stateFilter.value = summary.state;
         document.querySelector("input[name='wellDisplay'][value='individual']").checked = true;
@@ -515,9 +479,7 @@ function updateLegend() {
       ${legendRow("#e2b84b", "10-20%")}
       ${legendRow("#b4473a", "Above 20%")}
       ${legendRow("#c8ced1", "No data")}
-      <hr>
-      ${wellLegendRows()}
-      ${wellSummaryNotes()}
+      ${wellLegendSection()}
     `;
     return;
   }
@@ -529,9 +491,7 @@ function updateLegend() {
       ${legendRow("#8bc5a9", "50-70")}
       ${legendRow("#1f7a7a", "70 or more")}
       ${legendRow("#c8ced1", "No data")}
-      <hr>
-      ${wellLegendRows()}
-      ${wellSummaryNotes()}
+      ${wellLegendSection()}
     `;
     return;
   }
@@ -541,11 +501,7 @@ function updateLegend() {
       ${legendRow("#3465a4", "Below 0.7 mg/L")}
       ${legendRow("#c78b1c", "0.7-2.0 mg/L")}
       ${legendRow("#b4473a", "Above 2.0 mg/L")}
-      ${state.currentWellDisplay === "summary" ? `
-        <hr>
-        <div class="legendNote">State summary color = average well fluoride</div>
-        <div class="legendNote">State summary size = number of wells</div>
-      ` : ""}
+      ${wellSummaryNotes()}
     `;
     return;
   }
@@ -556,6 +512,13 @@ function updateLegend() {
     ${legendRow("#74b7a1", "50-75%")}
     ${legendRow("#1f7a7a", "75-100%")}
     ${legendRow("#c8ced1", "No data")}
+    ${wellLegendSection()}
+  `;
+}
+
+function wellLegendSection() {
+  if (!els.wellToggle.checked) return "";
+  return `
     <hr>
     ${wellLegendRows()}
     ${wellSummaryNotes()}
@@ -655,9 +618,7 @@ function clearSelection() {
 
 function selectedPrompt() {
   if (state.activeBoundary === "none") return "Select a groundwater well on the map.";
-  return state.identifyMode === "wells"
-    ? "Select a groundwater well on the map."
-    : "Select a county or state boundary on the map.";
+  return "Select a visible map feature.";
 }
 
 function applySelectedStyle() {
@@ -731,7 +692,7 @@ function wellBaseStyle(feature) {
     fillOpacity: 0.7,
     color: "#263238",
     weight: 0.4,
-    interactive: state.identifyMode === "wells"
+    interactive: true
   };
 }
 
@@ -761,7 +722,7 @@ function summaryStyle(summary) {
     fillOpacity: 0.72,
     color: "#101820",
     weight: 1.2,
-    interactive: state.identifyMode === "wells"
+    interactive: true
   };
 }
 
