@@ -734,7 +734,7 @@ function updateLegend() {
   if (state.activeBoundary === "none") {
     els.legend.innerHTML = `
       <strong>Untreated groundwater wells</strong>
-      ${legendRow("#2f8f62", "Below 0.7 mg/L")}
+      ${legendRow("#3465a4", "Below 0.7 mg/L")}
       ${legendRow("#c78b1c", "0.7-2.0 mg/L")}
       ${legendRow("#b4473a", "Above 2.0 mg/L")}
       ${wellDisplayNotes()}
@@ -763,7 +763,7 @@ function wellLegendSection() {
 
 function wellLegendRows() {
   return `
-    ${legendCircle("#2f8f62", "Wells below 0.7 mg/L")}
+    ${legendCircle("#3465a4", "Wells below 0.7 mg/L")}
     ${legendCircle("#c78b1c", "Wells 0.7-2.0 mg/L")}
     ${legendCircle("#b4473a", "Wells above 2.0 mg/L")}
   `;
@@ -976,7 +976,7 @@ function wellColor(value) {
   const n = numeric(value);
   if (n > 2) return "#b4473a";
   if (n >= 0.7) return "#c78b1c";
-  return "#2f8f62";
+  return "#3465a4";
 }
 
 function radiusFor(value) {

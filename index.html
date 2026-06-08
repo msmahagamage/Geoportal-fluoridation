@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluoridation Geoportal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css?v=20260608-gis-layer-controls">
+    <link rel="stylesheet" href="styles.css?v=20260608-polished-well-filters">
   </head>
   <body>
     <aside class="sidebar">
@@ -36,9 +36,9 @@
               <output id="fluorideRangeValue">0.0</output>
               <div class="filterGroup">
                 <p>Fluoride category</p>
-                <label><input type="checkbox" name="fluorideCategory" value="low" checked> Below 0.7 mg/L</label>
-                <label><input type="checkbox" name="fluorideCategory" value="medium" checked> 0.7-2.0 mg/L</label>
-                <label><input type="checkbox" name="fluorideCategory" value="high" checked> Above 2.0 mg/L</label>
+                <label><input type="checkbox" name="fluorideCategory" value="low" checked><span class="categoryChip low"></span> Below 0.7 mg/L</label>
+                <label><input type="checkbox" name="fluorideCategory" value="medium" checked><span class="categoryChip medium"></span> 0.7-2.0 mg/L</label>
+                <label><input type="checkbox" name="fluorideCategory" value="high" checked><span class="categoryChip high"></span> Above 2.0 mg/L</label>
               </div>
             </div>
           </div>
@@ -77,7 +77,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-gis-layer-controls"></script>
+    <script src="app.js?v=20260608-polished-well-filters"></script>
   </body>
 </html>
 
