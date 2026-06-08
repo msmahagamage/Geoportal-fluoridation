@@ -485,7 +485,6 @@ output {
 .demoHomeMini,
 .demoExtentBox,
 .demoSlider,
-.demoCursor,
 .demoSelectedPoint,
 .demoPointField b {
   position: absolute;
@@ -568,10 +567,6 @@ output {
   left: 84px;
   top: 25px;
   background: #b4473a;
-}
-
-.demoLayers .demoCursor {
-  animation: demoClickLayers 4.8s infinite ease-in-out;
 }
 
 .demoFilters .demoPanelMini {
@@ -659,10 +654,6 @@ output {
   animation: demoSelectedPulse 4.8s infinite ease-in-out;
 }
 
-.demoSelect .demoCursor {
-  animation: demoClickPoint 4.8s infinite ease-in-out;
-}
-
 .demoZoomMini,
 .demoHomeMini {
   left: 18px;
@@ -706,26 +697,6 @@ output {
   animation: demoExtentZoom 4.8s infinite ease-in-out;
 }
 
-.demoReset .demoCursor {
-  animation: demoClickHome 4.8s infinite ease-in-out;
-}
-
-.demoCursor {
-  width: 18px;
-  height: 18px;
-  border-radius: 50% 50% 50% 0;
-  background: #172126;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.82);
-  transform: rotate(-45deg);
-}
-
-@keyframes demoClickLayers {
-  0%, 100% { left: 30px; top: 32px; transform: rotate(-45deg) scale(1); }
-  45% { left: 38px; top: 61px; transform: rotate(-45deg) scale(1); }
-  55% { left: 38px; top: 61px; transform: rotate(-45deg) scale(0.82); }
-  75% { left: 182px; top: 54px; transform: rotate(-45deg) scale(1); }
-}
-
 @keyframes demoFilterLine {
   0%, 45%, 100% { width: 78%; background: #d8e3e1; }
   60%, 85% { width: 46%; background: #3f6fa8; }
@@ -741,12 +712,6 @@ output {
   55%, 82% { left: 58px; }
 }
 
-@keyframes demoClickPoint {
-  0%, 100% { left: 54px; top: 78px; transform: rotate(-45deg) scale(1); }
-  44% { left: 72px; top: 80px; transform: rotate(-45deg) scale(1); }
-  54% { left: 72px; top: 80px; transform: rotate(-45deg) scale(0.82); }
-}
-
 @keyframes demoPopupPulse {
   0%, 35%, 100% { opacity: 0; transform: translateY(8px) scale(0.96); }
   48%, 88% { opacity: 1; transform: translateY(0) scale(1); }
@@ -757,15 +722,282 @@ output {
   48%, 88% { box-shadow: 0 0 0 6px #fff, 0 0 0 10px rgba(16, 24, 32, 0.24); }
 }
 
-@keyframes demoClickHome {
-  0%, 100% { left: 78px; top: 78px; transform: rotate(-45deg) scale(1); }
-  40% { left: 28px; top: 82px; transform: rotate(-45deg) scale(1); }
-  50% { left: 28px; top: 82px; transform: rotate(-45deg) scale(0.82); }
-}
-
 @keyframes demoExtentZoom {
   0%, 35%, 100% { transform: scale(1.25); opacity: 0.48; }
   55%, 86% { transform: scale(1); opacity: 1; }
+}
+
+.demoLayerList,
+.demoRealMap,
+.demoModeTabs,
+.demoSummaryDots,
+.demoIndividualDots {
+  position: absolute;
+}
+
+.demoLayerList {
+  left: 12px;
+  top: 12px;
+  width: 118px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 18px rgba(23, 33, 38, 0.12);
+}
+
+.demoLayerList i {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: 7px;
+  align-items: center;
+}
+
+.demoLayerList b {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #3f6fa8;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.demoLayerList i:nth-child(1) b,
+.demoLayerList i:nth-child(2) b {
+  background: #3f6fa8;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.demoLayerList em {
+  height: 8px;
+  border-radius: 999px;
+  background: #d8e3e1;
+}
+
+.demoLayerList i:nth-child(2) em {
+  width: 74%;
+}
+
+.demoLayerList i:nth-child(3) em {
+  width: 58%;
+}
+
+.demoRealMap {
+  right: 14px;
+  top: 13px;
+  width: 176px;
+  height: 98px;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, transparent 0 48%, rgba(255, 255, 255, 0.72) 48% 51%, transparent 51%),
+    #dff0e7;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.72);
+}
+
+.demoPoly,
+.demoWell {
+  position: absolute;
+}
+
+.demoPoly {
+  border: 1.5px solid #fff;
+  background: rgba(31, 122, 122, 0.52);
+  animation: demoLayerPolygons 5.6s infinite ease-in-out;
+}
+
+.demoPoly.one {
+  left: 22px;
+  top: 16px;
+  width: 76px;
+  height: 52px;
+  clip-path: polygon(0 6%, 78% 0, 100% 45%, 62% 100%, 6% 78%);
+}
+
+.demoPoly.two {
+  right: 20px;
+  bottom: 14px;
+  width: 72px;
+  height: 48px;
+  clip-path: polygon(15% 0, 100% 12%, 84% 92%, 22% 100%, 0 44%);
+}
+
+.demoWell {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid #101820;
+  border-radius: 50%;
+  background: #3465a4;
+  animation: demoLayerWells 5.6s infinite ease-in-out;
+}
+
+.demoWell.p1 {
+  left: 54px;
+  top: 38px;
+}
+
+.demoWell.p2 {
+  left: 98px;
+  top: 66px;
+  background: #c78b1c;
+}
+
+.demoWell.p3 {
+  right: 42px;
+  top: 30px;
+  background: #b4473a;
+}
+
+.demoModeTabs {
+  left: 12px;
+  top: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.demoModeTabs i {
+  padding: 6px 8px;
+  border: 1px solid #dce6e4;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.demoModeTabs i:nth-child(1) {
+  animation: demoSummaryTab 5.6s infinite ease-in-out;
+}
+
+.demoModeTabs i:nth-child(2) {
+  animation: demoIndividualTab 5.6s infinite ease-in-out;
+}
+
+.demoSummaryDots,
+.demoIndividualDots {
+  inset: 0;
+}
+
+.demoSummaryDots b,
+.demoIndividualDots b {
+  position: absolute;
+  border: 1.5px solid #101820;
+  border-radius: 50%;
+}
+
+.demoSummaryDots b {
+  width: 30px;
+  height: 30px;
+  background: rgba(52, 101, 164, 0.82);
+  animation: demoSummaryDots 5.6s infinite ease-in-out;
+}
+
+.demoSummaryDots b:nth-child(1) {
+  left: 92px;
+  top: 60px;
+}
+
+.demoSummaryDots b:nth-child(2) {
+  left: 160px;
+  top: 48px;
+  width: 42px;
+  height: 42px;
+  background: rgba(199, 139, 28, 0.82);
+}
+
+.demoSummaryDots b:nth-child(3) {
+  right: 36px;
+  top: 60px;
+}
+
+.demoIndividualDots b {
+  width: 10px;
+  height: 10px;
+  background: #3465a4;
+  opacity: 0;
+  animation: demoIndividualDots 5.6s infinite ease-in-out;
+}
+
+.demoIndividualDots b:nth-child(1) { left: 120px; top: 50px; }
+.demoIndividualDots b:nth-child(2) { left: 144px; top: 72px; background: #c78b1c; }
+.demoIndividualDots b:nth-child(3) { left: 170px; top: 58px; }
+.demoIndividualDots b:nth-child(4) { left: 206px; top: 78px; background: #b4473a; }
+.demoIndividualDots b:nth-child(5) { left: 236px; top: 56px; }
+.demoIndividualDots b:nth-child(6) { left: 270px; top: 82px; background: #c78b1c; }
+
+.demoFilters .demoSlider {
+  animation: demoFilterPanelAppear 5.6s infinite ease-in-out;
+}
+
+.demoSelect .selectMap {
+  left: 14px;
+  right: auto;
+  width: 168px;
+}
+
+.demoSelect .demoSelectedPoint {
+  left: 70px;
+  bottom: 37px;
+}
+
+.demoSelect .demoPopupMini {
+  left: 180px;
+  top: 20px;
+  width: 132px;
+  animation: demoPopupPulse 5.6s infinite ease-in-out;
+}
+
+.demoReset .demoHomeMini {
+  animation: demoHomePulse 4.8s infinite ease-in-out;
+}
+
+.demoReset .demoExtentBox {
+  animation: demoExtentZoomCalm 4.8s infinite ease-in-out;
+}
+
+@keyframes demoLayerPolygons {
+  0%, 30%, 100% { opacity: 0.24; }
+  45%, 86% { opacity: 1; }
+}
+
+@keyframes demoLayerWells {
+  0%, 45%, 100% { opacity: 0.2; transform: scale(0.9); }
+  58%, 86% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes demoSummaryTab {
+  0%, 45%, 100% { background: #1f7a7a; color: #fff; }
+  58%, 86% { background: #fff; color: var(--muted); }
+}
+
+@keyframes demoIndividualTab {
+  0%, 45%, 100% { background: #fff; color: var(--muted); }
+  58%, 86% { background: #1f7a7a; color: #fff; }
+}
+
+@keyframes demoSummaryDots {
+  0%, 45%, 100% { opacity: 1; transform: scale(1); }
+  58%, 86% { opacity: 0; transform: scale(0.78); }
+}
+
+@keyframes demoIndividualDots {
+  0%, 45%, 100% { opacity: 0; transform: scale(0.7); }
+  58%, 86% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes demoFilterPanelAppear {
+  0%, 45%, 100% { opacity: 0.35; }
+  58%, 86% { opacity: 1; }
+}
+
+@keyframes demoHomePulse {
+  0%, 100% { box-shadow: 0 5px 12px rgba(23, 33, 38, 0.12); transform: scale(1); }
+  45%, 62% { box-shadow: 0 0 0 5px rgba(63, 111, 168, 0.22); transform: scale(1.06); }
+}
+
+@keyframes demoExtentZoomCalm {
+  0%, 35%, 100% { transform: scale(1.18); opacity: 0.45; }
+  52%, 86% { transform: scale(1); opacity: 1; }
 }
 
 .demoSteps span {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluoridation Geoportal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css?v=20260608-animated-demo">
+    <link rel="stylesheet" href="styles.css?v=20260608-realistic-demo">
   </head>
   <body>
     <aside class="sidebar">
@@ -84,13 +84,18 @@
         <div class="demoSteps">
           <article>
             <div class="demoVisual demoLayers" aria-hidden="true">
-              <div class="demoSidebarMini">
-                <i></i><i></i><i></i>
+              <div class="demoLayerList">
+                <i><b></b><em></em></i>
+                <i><b></b><em></em></i>
+                <i><b></b><em></em></i>
               </div>
-              <div class="demoMapMini">
-                <b></b><b></b><b></b>
+              <div class="demoRealMap">
+                <span class="demoPoly one"></span>
+                <span class="demoPoly two"></span>
+                <span class="demoWell p1"></span>
+                <span class="demoWell p2"></span>
+                <span class="demoWell p3"></span>
               </div>
-              <div class="demoCursor"></div>
             </div>
             <span>1</span>
             <h3>Choose layers</h3>
@@ -98,11 +103,15 @@
           </article>
           <article>
             <div class="demoVisual demoFilters" aria-hidden="true">
-              <div class="demoPanelMini">
-                <i></i><i></i><i></i>
+              <div class="demoModeTabs">
+                <i>State summaries</i>
+                <i>Individual wells</i>
               </div>
-              <div class="demoPointField">
-                <b></b><b></b><b></b><b></b><b></b>
+              <div class="demoSummaryDots">
+                <b></b><b></b><b></b>
+              </div>
+              <div class="demoIndividualDots">
+                <b></b><b></b><b></b><b></b><b></b><b></b>
               </div>
               <div class="demoSlider"></div>
             </div>
@@ -112,11 +121,17 @@
           </article>
           <article>
             <div class="demoVisual demoSelect" aria-hidden="true">
+              <div class="demoRealMap selectMap">
+                <span class="demoPoly one"></span>
+                <span class="demoPoly two"></span>
+                <span class="demoWell p1"></span>
+                <span class="demoWell p2"></span>
+                <span class="demoWell p3"></span>
+              </div>
               <div class="demoPopupMini">
                 <i></i><i></i><i></i>
               </div>
               <div class="demoSelectedPoint"></div>
-              <div class="demoCursor"></div>
             </div>
             <span>3</span>
             <h3>Select features</h3>
@@ -124,10 +139,9 @@
           </article>
           <article>
             <div class="demoVisual demoReset" aria-hidden="true">
-              <div class="demoZoomMini">+<em>−</em></div>
+              <div class="demoZoomMini">+<em>-</em></div>
               <div class="demoHomeMini">H</div>
               <div class="demoExtentBox"></div>
-              <div class="demoCursor"></div>
             </div>
             <span>4</span>
             <h3>Reset the map</h3>
@@ -138,7 +152,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-animated-demo"></script>
+    <script src="app.js?v=20260608-realistic-demo"></script>
   </body>
 </html>
 
