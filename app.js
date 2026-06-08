@@ -7,7 +7,7 @@ const DATA = {
   stateGeo: "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
 };
 
-const DATA_VERSION = "20260608-well-aggregation-1";
+const DATA_VERSION = "20260608-well-aggregation-2";
 
 const HOME_VIEW = {
   center: [39.5, -98.35],
@@ -25,7 +25,7 @@ const state = {
   wellSummaryLayer: null,
   stateBounds: new Map(),
   visibleWellCount: 0,
-  currentWellDisplay: "auto",
+  currentWellDisplay: "summary",
   activeBoundary: "state",
   identifyMode: "boundaries",
   selectedFeature: null
@@ -101,10 +101,6 @@ document.querySelectorAll("input[name='wellDisplay']").forEach((input) => {
 });
 
 map.on("click", clearSelection);
-map.on("zoomend", () => {
-  refreshWells();
-  updateMetrics();
-});
 
 [els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
   el.addEventListener("input", () => {
@@ -116,7 +112,7 @@ map.on("zoomend", () => {
 });
 
 els.stateFilter.addEventListener("input", () => {
-  fitSelectedState();
+  handleStateFilterChange();
   refreshWells();
   restyleBoundaries();
   updateMetrics();
@@ -274,7 +270,7 @@ function updateIdentifyInteractivity() {
 function resetHome() {
   document.querySelector("input[name='boundaryLayer'][value='state']").checked = true;
   document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
-  document.querySelector("input[name='wellDisplay'][value='auto']").checked = true;
+  document.querySelector("input[name='wellDisplay'][value='summary']").checked = true;
   state.identifyMode = "boundaries";
   updateIdentifyInteractivity();
   els.stateFilter.value = "";
@@ -291,9 +287,19 @@ function resetHome() {
   updateMetrics();
 }
 
+function handleStateFilterChange() {
+  const abbr = els.stateFilter.value;
+  if (!abbr) {
+    document.querySelector("input[name='wellDisplay'][value='summary']").checked = true;
+    map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
+    return;
+  }
+  document.querySelector("input[name='wellDisplay'][value='individual']").checked = true;
+  fitSelectedState();
+}
+
 function fitSelectedState() {
   const abbr = els.stateFilter.value;
-  if (!abbr) return;
   const bounds = state.stateBounds.get(abbr);
   if (bounds) {
     map.fitBounds(bounds, { padding: [28, 28], maxZoom: 7 });
@@ -339,7 +345,7 @@ function refreshWells() {
       (numeric(p.fluoride_mg_l) >= minFluoride);
   });
   state.visibleWellCount = filteredFeatures.length;
-  const display = currentWellDisplayMode(selectedState);
+  const display = currentWellDisplayMode();
   state.currentWellDisplay = display;
   if (display === "summary") {
     addWellSummaryLayer(filteredFeatures);
@@ -361,10 +367,8 @@ function bringWellsToFront() {
   }
 }
 
-function currentWellDisplayMode(selectedState) {
-  const selected = document.querySelector("input[name='wellDisplay']:checked")?.value || "auto";
-  if (selected !== "auto") return selected;
-  return selectedState || map.getZoom() >= 6 ? "individual" : "summary";
+function currentWellDisplayMode() {
+  return document.querySelector("input[name='wellDisplay']:checked")?.value || "summary";
 }
 
 function addWellSummaryLayer(features) {
@@ -389,6 +393,7 @@ function addWellSummaryLayer(features) {
         if (state.identifyMode !== "wells") return;
         L.DomEvent.stop(event.originalEvent);
         els.stateFilter.value = summary.state;
+        document.querySelector("input[name='wellDisplay'][value='individual']").checked = true;
         fitSelectedState();
         refreshWells();
         updateMetrics();
@@ -409,11 +414,15 @@ function summarizeWellsByState(features) {
   features.forEach((feature) => {
     const abbr = feature.properties.state || "Unknown";
     if (!groups.has(abbr)) {
-      groups.set(abbr, { state: abbr, count: 0, fluoride: [], low: 0, medium: 0, high: 0 });
+      groups.set(abbr, { state: abbr, count: 0, fluoride: [], low: 0, medium: 0, high: 0, latSum: 0, lngSum: 0, points: [] });
     }
     const group = groups.get(abbr);
     const fluoride = numeric(feature.properties.fluoride_mg_l);
+    const [lng, lat] = feature.geometry?.coordinates || [];
     group.count += 1;
+    group.latSum += lat;
+    group.lngSum += lng;
+    group.points.push([lat, lng]);
     if (Number.isFinite(fluoride)) {
       group.fluoride.push(fluoride);
       if (fluoride > 2) group.high += 1;
@@ -422,14 +431,24 @@ function summarizeWellsByState(features) {
     }
   });
   return [...groups.values()].map((group) => {
-    const bounds = state.stateBounds.get(group.state);
-    const center = bounds ? bounds.getCenter() : null;
+    const mean = [group.latSum / group.count, group.lngSum / group.count];
     return {
       ...group,
-      center,
+      center: representativePoint(group.points, mean),
       avgFluoride: average(group.fluoride)
     };
-  }).filter((group) => group.center && Number.isFinite(group.avgFluoride));
+  }).filter((group) => Number.isFinite(group.center[0]) && Number.isFinite(group.center[1]) && Number.isFinite(group.avgFluoride));
+}
+
+function representativePoint(points, mean) {
+  return points.reduce((best, point) => {
+    const distance = squaredDistance(point, mean);
+    return distance < best.distance ? { point, distance } : best;
+  }, { point: mean, distance: Infinity }).point;
+}
+
+function squaredDistance(a, b) {
+  return ((a[0] - b[0]) ** 2) + ((a[1] - b[1]) ** 2);
 }
 
 function restyleBoundaries() {
