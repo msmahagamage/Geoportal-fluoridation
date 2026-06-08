@@ -406,7 +406,7 @@ output {
 
 .demoDialog {
   position: relative;
-  width: min(720px, 100%);
+  width: min(860px, 100%);
   max-height: min(720px, calc(100vh - 48px));
   overflow: auto;
   border-radius: 8px;
@@ -447,12 +447,325 @@ output {
 .demoSteps article {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 5px 10px;
+  gap: 6px 10px;
   align-items: start;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 13px;
   background: #fbfdfc;
+}
+
+.demoVisual {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 126px;
+  overflow: hidden;
+  border: 1px solid #dce6e4;
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.08)),
+    repeating-linear-gradient(0deg, rgba(31, 122, 122, 0.08) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(90deg, rgba(31, 122, 122, 0.08) 0 1px, transparent 1px 34px),
+    #e9f1ef;
+}
+
+.demoVisual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 78% 24%, rgba(52, 101, 164, 0.12), transparent 26%);
+  pointer-events: none;
+}
+
+.demoSidebarMini,
+.demoPanelMini,
+.demoPopupMini,
+.demoMapMini,
+.demoZoomMini,
+.demoHomeMini,
+.demoExtentBox,
+.demoSlider,
+.demoCursor,
+.demoSelectedPoint,
+.demoPointField b {
+  position: absolute;
+}
+
+.demoSidebarMini,
+.demoPanelMini,
+.demoPopupMini {
+  left: 12px;
+  top: 14px;
+  width: 86px;
+  padding: 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 18px rgba(23, 33, 38, 0.12);
+}
+
+.demoSidebarMini i,
+.demoPanelMini i,
+.demoPopupMini i {
+  display: block;
+  height: 8px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: #d8e3e1;
+}
+
+.demoSidebarMini i:first-child,
+.demoPanelMini i:first-child,
+.demoPopupMini i:first-child {
+  width: 54%;
+  background: #1f7a7a;
+}
+
+.demoSidebarMini i:nth-child(2),
+.demoPanelMini i:nth-child(2),
+.demoPopupMini i:nth-child(2) {
+  width: 78%;
+}
+
+.demoSidebarMini i:last-child,
+.demoPanelMini i:last-child,
+.demoPopupMini i:last-child {
+  width: 64%;
+  margin-bottom: 0;
+}
+
+.demoMapMini {
+  right: 16px;
+  top: 20px;
+  width: 112px;
+  height: 78px;
+  border-radius: 7px;
+  background: #bfe3cf;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.75);
+}
+
+.demoMapMini b,
+.demoPointField b {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid #101820;
+  border-radius: 50%;
+  background: #3465a4;
+}
+
+.demoMapMini b:nth-child(1) {
+  left: 30px;
+  top: 20px;
+}
+
+.demoMapMini b:nth-child(2) {
+  left: 62px;
+  top: 42px;
+  background: #c78b1c;
+}
+
+.demoMapMini b:nth-child(3) {
+  left: 84px;
+  top: 25px;
+  background: #b4473a;
+}
+
+.demoLayers .demoCursor {
+  animation: demoClickLayers 4.8s infinite ease-in-out;
+}
+
+.demoFilters .demoPanelMini {
+  width: 112px;
+}
+
+.demoFilters .demoPanelMini i:nth-child(2) {
+  animation: demoFilterLine 4.8s infinite ease-in-out;
+}
+
+.demoPointField {
+  position: absolute;
+  inset: 0;
+}
+
+.demoPointField b:nth-child(1) {
+  left: 178px;
+  top: 28px;
+}
+
+.demoPointField b:nth-child(2) {
+  left: 218px;
+  top: 66px;
+  background: #c78b1c;
+}
+
+.demoPointField b:nth-child(3) {
+  left: 272px;
+  top: 38px;
+}
+
+.demoPointField b:nth-child(4) {
+  left: 308px;
+  top: 76px;
+  background: #b4473a;
+}
+
+.demoPointField b:nth-child(5) {
+  left: 248px;
+  top: 92px;
+  background: #c78b1c;
+}
+
+.demoFilters .demoPointField b {
+  animation: demoFilterPoints 4.8s infinite ease-in-out;
+}
+
+.demoSlider {
+  left: 20px;
+  bottom: 16px;
+  width: 92px;
+  height: 4px;
+  border-radius: 999px;
+  background: #cbd8d6;
+}
+
+.demoSlider::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3f6fa8;
+  animation: demoSliderMove 4.8s infinite ease-in-out;
+}
+
+.demoPopupMini {
+  left: 124px;
+  top: 18px;
+  width: 138px;
+  animation: demoPopupPulse 4.8s infinite ease-in-out;
+}
+
+.demoSelectedPoint {
+  left: 72px;
+  bottom: 28px;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #101820;
+  border-radius: 50%;
+  background: #c78b1c;
+  box-shadow: 0 0 0 5px #fff;
+  animation: demoSelectedPulse 4.8s infinite ease-in-out;
+}
+
+.demoSelect .demoCursor {
+  animation: demoClickPoint 4.8s infinite ease-in-out;
+}
+
+.demoZoomMini,
+.demoHomeMini {
+  left: 18px;
+  width: 30px;
+  border: 1px solid #9cadb4;
+  background: #fff;
+  color: #172126;
+  text-align: center;
+  font-weight: 750;
+  box-shadow: 0 5px 12px rgba(23, 33, 38, 0.12);
+}
+
+.demoZoomMini {
+  top: 16px;
+  height: 48px;
+  line-height: 23px;
+  border-radius: 4px;
+}
+
+.demoZoomMini em {
+  display: block;
+  border-top: 1px solid #dce6e4;
+  font-style: normal;
+}
+
+.demoHomeMini {
+  top: 72px;
+  height: 30px;
+  line-height: 29px;
+  border-radius: 4px;
+}
+
+.demoExtentBox {
+  right: 34px;
+  top: 30px;
+  width: 132px;
+  height: 64px;
+  border: 2px solid #1f7a7a;
+  border-radius: 10px;
+  background: rgba(31, 122, 122, 0.12);
+  animation: demoExtentZoom 4.8s infinite ease-in-out;
+}
+
+.demoReset .demoCursor {
+  animation: demoClickHome 4.8s infinite ease-in-out;
+}
+
+.demoCursor {
+  width: 18px;
+  height: 18px;
+  border-radius: 50% 50% 50% 0;
+  background: #172126;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.82);
+  transform: rotate(-45deg);
+}
+
+@keyframes demoClickLayers {
+  0%, 100% { left: 30px; top: 32px; transform: rotate(-45deg) scale(1); }
+  45% { left: 38px; top: 61px; transform: rotate(-45deg) scale(1); }
+  55% { left: 38px; top: 61px; transform: rotate(-45deg) scale(0.82); }
+  75% { left: 182px; top: 54px; transform: rotate(-45deg) scale(1); }
+}
+
+@keyframes demoFilterLine {
+  0%, 45%, 100% { width: 78%; background: #d8e3e1; }
+  60%, 85% { width: 46%; background: #3f6fa8; }
+}
+
+@keyframes demoFilterPoints {
+  0%, 48%, 100% { opacity: 1; transform: scale(1); }
+  65%, 85% { opacity: 0.34; transform: scale(0.78); }
+}
+
+@keyframes demoSliderMove {
+  0%, 100% { left: 6px; }
+  55%, 82% { left: 58px; }
+}
+
+@keyframes demoClickPoint {
+  0%, 100% { left: 54px; top: 78px; transform: rotate(-45deg) scale(1); }
+  44% { left: 72px; top: 80px; transform: rotate(-45deg) scale(1); }
+  54% { left: 72px; top: 80px; transform: rotate(-45deg) scale(0.82); }
+}
+
+@keyframes demoPopupPulse {
+  0%, 35%, 100% { opacity: 0; transform: translateY(8px) scale(0.96); }
+  48%, 88% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes demoSelectedPulse {
+  0%, 35%, 100% { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8); }
+  48%, 88% { box-shadow: 0 0 0 6px #fff, 0 0 0 10px rgba(16, 24, 32, 0.24); }
+}
+
+@keyframes demoClickHome {
+  0%, 100% { left: 78px; top: 78px; transform: rotate(-45deg) scale(1); }
+  40% { left: 28px; top: 82px; transform: rotate(-45deg) scale(1); }
+  50% { left: 28px; top: 82px; transform: rotate(-45deg) scale(0.82); }
+}
+
+@keyframes demoExtentZoom {
+  0%, 35%, 100% { transform: scale(1.25); opacity: 0.48; }
+  55%, 86% { transform: scale(1); opacity: 1; }
 }
 
 .demoSteps span {
