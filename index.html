@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluoridation Geoportal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css?v=20260608-native-checkboxes">
+    <link rel="stylesheet" href="styles.css?v=20260608-popup-only-details">
   </head>
   <body>
     <aside class="sidebar">
@@ -71,20 +71,10 @@
         <div class="legend" id="legend"></div>
       </section>
 
-      <section class="details">
-        <article>
-          <h3>Selected Geography</h3>
-          <div id="selectedDetails" class="detailBox">Select a county or state boundary on the map.</div>
-        </article>
-        <article>
-          <h3>County Access Indicators</h3>
-          <div id="healthSummary" class="detailBox">Select a county to view healthy-food and dental-care access.</div>
-        </article>
-      </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-polygon-identify-fallback"></script>
+    <script src="app.js?v=20260608-popup-only-details"></script>
   </body>
 </html>
 
