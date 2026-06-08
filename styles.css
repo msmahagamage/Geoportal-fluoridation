@@ -5,6 +5,7 @@
   --paper: #f6f8f6;
   --panel: #ffffff;
   --teal: #1f7a7a;
+  --green: #2f8f62;
   --gold: #c78b1c;
   --red: #b4473a;
   --blue: #3465a4;
@@ -103,6 +104,38 @@ h3 {
   margin-left: 20px;
 }
 
+.wellFilters {
+  display: grid;
+  gap: 8px;
+  margin: 2px 0 0 20px;
+  padding: 12px;
+  border-left: 3px solid var(--line);
+  background: #f7faf9;
+}
+
+.wellFilters.is-disabled {
+  display: none;
+}
+
+.wellFilters label:not(:has(input)) {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.filterGroup {
+  display: grid;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.filterGroup p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
 .panel label:has(input) {
   display: flex;
   align-items: center;
@@ -157,6 +190,18 @@ input[type="file"] {
 output {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.leaflet-container {
+  cursor: grab;
+}
+
+.leaflet-container.is-selectable {
+  cursor: pointer;
+}
+
+.leaflet-container.is-dragging {
+  cursor: grabbing;
 }
 
 .workspace {

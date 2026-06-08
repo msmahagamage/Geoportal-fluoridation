@@ -10,8 +10,8 @@ const DATA = {
 const DATA_VERSION = "20260608-well-aggregation-2";
 
 const HOME_VIEW = {
-  center: [39.5, -98.35],
-  zoom: 4
+  center: [38.6, -96.5],
+  zoom: 5
 };
 
 const state = {
@@ -29,6 +29,7 @@ const state = {
   visibleWellFeatures: [],
   selectedWellMarker: null,
   activeBoundary: "state",
+  isDragging: false,
   selectedFeature: null
 };
 
@@ -43,12 +44,15 @@ map.createPane("wellPane");
 map.getPane("wellPane").style.zIndex = 430;
 addHomeControl();
 let skipNextMapIdentify = false;
+let cursorMoveFrame = null;
 
 const els = {
   stateFilter: document.getElementById("stateFilter"),
   wellTypeFilter: document.getElementById("wellTypeFilter"),
   fluorideRange: document.getElementById("fluorideRange"),
   fluorideRangeValue: document.getElementById("fluorideRangeValue"),
+  fluorideCategories: [...document.querySelectorAll("input[name='fluorideCategory']")],
+  wellFilterPanel: document.getElementById("wellFilterPanel"),
   wellToggle: document.getElementById("wellToggle"),
   viewTitle: document.getElementById("viewTitle"),
   metricCounties: document.getElementById("metricCounties"),
@@ -72,6 +76,7 @@ Promise.all([
   states.forEach((row) => state.stateFluoride.set(row.state, row));
   health.forEach((row) => state.healthAccess.set(String(row.fips).padStart(5, "0"), row));
   buildFilters(counties, wells);
+  updateWellFilterVisibility();
   addCountyLayer(countyGeo);
   addStateLayer(stateGeo);
   addWellLayer(wells);
@@ -88,16 +93,29 @@ document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
 
 document.querySelectorAll("input[name='wellDisplay']").forEach((input) => {
   input.addEventListener("change", () => {
+    if (input.value === "summary" && input.checked) resetWellFilters();
+    updateWellFilterVisibility();
     refreshWells();
     updateMetrics();
   });
 });
 
 map.on("click", handleMapClick);
+map.on("mousemove", queueCursorUpdate);
+map.on("mouseout", clearMapCursor);
+map.on("dragstart", () => {
+  state.isDragging = true;
+  setMapCursor("is-dragging");
+});
+map.on("dragend", () => {
+  state.isDragging = false;
+  clearMapCursor();
+});
 
-[els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
+[els.wellTypeFilter, els.fluorideRange, els.wellToggle, ...els.fluorideCategories].forEach((el) => {
   el.addEventListener("input", () => {
     els.fluorideRangeValue.textContent = Number(els.fluorideRange.value).toFixed(1);
+    updateWellFilterVisibility();
     refreshWells();
     restyleBoundaries();
     updateMetrics();
@@ -245,6 +263,26 @@ function handleMapClick(event) {
   } else {
     selectCountyFeature(boundary.layer.feature, boundary.layer, event.latlng);
   }
+}
+
+function queueCursorUpdate(event) {
+  if (state.isDragging) return;
+  if (cursorMoveFrame) cancelAnimationFrame(cursorMoveFrame);
+  cursorMoveFrame = requestAnimationFrame(() => {
+    cursorMoveFrame = null;
+    const selectable = nearestVisibleWellFeature(event.latlng) || boundaryDetailsAt(event.latlng);
+    setMapCursor(selectable ? "is-selectable" : "");
+  });
+}
+
+function setMapCursor(mode) {
+  const container = map.getContainer();
+  container.classList.toggle("is-selectable", mode === "is-selectable");
+  container.classList.toggle("is-dragging", mode === "is-dragging");
+}
+
+function clearMapCursor() {
+  setMapCursor("");
 }
 
 function nearestVisibleWellFeature(latlng) {
@@ -419,11 +457,9 @@ function resetHome() {
     input.checked = input.value === "state";
   });
   document.querySelector("input[name='wellDisplay'][value='summary']").checked = true;
-  els.stateFilter.value = "";
-  els.wellTypeFilter.value = "";
-  els.fluorideRange.value = "0";
-  els.fluorideRangeValue.textContent = "0.0";
+  resetWellFilters();
   els.wellToggle.checked = true;
+  updateWellFilterVisibility();
   map.closePopup();
   map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
   clearSelection();
@@ -437,10 +473,13 @@ function handleStateFilterChange() {
   const abbr = els.stateFilter.value;
   if (!abbr) {
     document.querySelector("input[name='wellDisplay'][value='summary']").checked = true;
+    resetWellFilters();
+    updateWellFilterVisibility();
     map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
     return;
   }
   document.querySelector("input[name='wellDisplay'][value='individual']").checked = true;
+  updateWellFilterVisibility();
   fitSelectedState();
 }
 
@@ -485,18 +524,22 @@ function refreshWells() {
     updateLegend();
     return;
   }
-  const selectedState = els.stateFilter.value;
-  const selectedType = els.wellTypeFilter.value;
-  const minFluoride = Number(els.fluorideRange.value);
+  const display = currentWellDisplayMode();
+  const useIndividualFilters = display === "individual";
+  const selectedState = useIndividualFilters ? els.stateFilter.value : "";
+  const selectedType = useIndividualFilters ? els.wellTypeFilter.value : "";
+  const minFluoride = useIndividualFilters ? Number(els.fluorideRange.value) : 0;
+  const selectedCategories = selectedFluorideCategories();
   const filteredFeatures = state.wells.features.filter((feature) => {
     const p = feature.properties;
+    const category = wellFluorideCategory(p.fluoride_mg_l);
     return (!selectedState || p.state === selectedState) &&
       (!selectedType || p.well_type === selectedType) &&
-      (numeric(p.fluoride_mg_l) >= minFluoride);
+      (numeric(p.fluoride_mg_l) >= minFluoride) &&
+      (!useIndividualFilters || selectedCategories.has(category));
   });
   state.visibleWellCount = filteredFeatures.length;
   state.visibleWellFeatures = filteredFeatures;
-  const display = currentWellDisplayMode();
   state.currentWellDisplay = display;
   if (display === "summary") {
     addWellSummaryLayer(filteredFeatures);
@@ -520,6 +563,35 @@ function bringWellsToFront() {
 
 function currentWellDisplayMode() {
   return document.querySelector("input[name='wellDisplay']:checked")?.value || "summary";
+}
+
+function selectedFluorideCategories() {
+  return new Set(els.fluorideCategories.filter((input) => input.checked).map((input) => input.value));
+}
+
+function wellFluorideCategory(value) {
+  const n = numeric(value);
+  if (n > 2) return "high";
+  if (n >= 0.7) return "medium";
+  return "low";
+}
+
+function updateWellFilterVisibility() {
+  const showFilters = els.wellToggle.checked && currentWellDisplayMode() === "individual";
+  els.wellFilterPanel.classList.toggle("is-disabled", !showFilters);
+  [els.stateFilter, els.wellTypeFilter, els.fluorideRange, ...els.fluorideCategories].forEach((control) => {
+    control.disabled = !showFilters;
+  });
+}
+
+function resetWellFilters() {
+  els.stateFilter.value = "";
+  els.wellTypeFilter.value = "";
+  els.fluorideRange.value = "0";
+  els.fluorideRangeValue.textContent = "0.0";
+  els.fluorideCategories.forEach((input) => {
+    input.checked = true;
+  });
 }
 
 function addWellSummaryLayer(features) {
@@ -549,6 +621,8 @@ function addWellSummaryLayer(features) {
         refreshWells();
         updateMetrics();
       });
+      marker.on("mouseover", () => setMapCursor("is-selectable"));
+      marker.on("mouseout", clearMapCursor);
       return marker;
     })
   );
@@ -660,7 +734,7 @@ function updateLegend() {
   if (state.activeBoundary === "none") {
     els.legend.innerHTML = `
       <strong>Untreated groundwater wells</strong>
-      ${legendRow("#3465a4", "Below 0.7 mg/L")}
+      ${legendRow("#2f8f62", "Below 0.7 mg/L")}
       ${legendRow("#c78b1c", "0.7-2.0 mg/L")}
       ${legendRow("#b4473a", "Above 2.0 mg/L")}
       ${wellDisplayNotes()}
@@ -689,7 +763,7 @@ function wellLegendSection() {
 
 function wellLegendRows() {
   return `
-    ${legendCircle("#3465a4", "Wells below 0.7 mg/L")}
+    ${legendCircle("#2f8f62", "Wells below 0.7 mg/L")}
     ${legendCircle("#c78b1c", "Wells 0.7-2.0 mg/L")}
     ${legendCircle("#b4473a", "Wells above 2.0 mg/L")}
   `;
@@ -902,7 +976,7 @@ function wellColor(value) {
   const n = numeric(value);
   if (n > 2) return "#b4473a";
   if (n >= 0.7) return "#c78b1c";
-  return "#3465a4";
+  return "#2f8f62";
 }
 
 function radiusFor(value) {
