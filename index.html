@@ -30,6 +30,13 @@
       </section>
 
       <section class="panel">
+        <h2>Well Display</h2>
+        <label><input type="radio" name="wellDisplay" value="auto" checked> Auto</label>
+        <label><input type="radio" name="wellDisplay" value="summary"> State summaries</label>
+        <label><input type="radio" name="wellDisplay" value="individual"> Individual wells</label>
+      </section>
+
+      <section class="panel">
         <h2>Filters</h2>
         <label for="stateFilter">State</label>
         <select id="stateFilter">
@@ -59,7 +66,7 @@
         </div>
         <div class="metricStrip">
           <div><span id="metricCounties">0</span><small>Counties</small></div>
-          <div><span id="metricWells">0</span><small>Visible wells</small></div>
+          <div><span id="metricWells">0</span><small id="metricWellsLabel">Visible wells</small></div>
           <div><span id="metricAverage">0%</span><small id="metricAverageLabel">Avg county fluoridation</small></div>
         </div>
       </header>
@@ -86,6 +93,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260605-state-source-1"></script>
+    <script src="app.js?v=20260608-well-aggregation-1"></script>
   </body>
 </html>

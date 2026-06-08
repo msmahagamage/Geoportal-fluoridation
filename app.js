@@ -7,7 +7,7 @@ const DATA = {
   stateGeo: "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
 };
 
-const DATA_VERSION = "20260605-state-source-1";
+const DATA_VERSION = "20260608-well-aggregation-1";
 
 const HOME_VIEW = {
   center: [39.5, -98.35],
@@ -22,6 +22,10 @@ const state = {
   countyLayer: null,
   stateLayer: null,
   wellLayer: null,
+  wellSummaryLayer: null,
+  stateBounds: new Map(),
+  visibleWellCount: 0,
+  currentWellDisplay: "auto",
   activeBoundary: "state",
   identifyMode: "boundaries",
   selectedFeature: null
@@ -48,6 +52,7 @@ const els = {
   viewTitle: document.getElementById("viewTitle"),
   metricCounties: document.getElementById("metricCounties"),
   metricWells: document.getElementById("metricWells"),
+  metricWellsLabel: document.getElementById("metricWellsLabel"),
   metricAverage: document.getElementById("metricAverage"),
   metricAverageLabel: document.getElementById("metricAverageLabel"),
   selectedDetails: document.getElementById("selectedDetails"),
@@ -88,15 +93,33 @@ document.querySelectorAll("input[name='identifyMode']").forEach((input) => {
   input.addEventListener("change", () => switchIdentifyMode(input.value));
 });
 
-map.on("click", clearSelection);
+document.querySelectorAll("input[name='wellDisplay']").forEach((input) => {
+  input.addEventListener("change", () => {
+    refreshWells();
+    updateMetrics();
+  });
+});
 
-[els.stateFilter, els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
+map.on("click", clearSelection);
+map.on("zoomend", () => {
+  refreshWells();
+  updateMetrics();
+});
+
+[els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
   el.addEventListener("input", () => {
     els.fluorideRangeValue.textContent = Number(els.fluorideRange.value).toFixed(1);
     refreshWells();
     restyleBoundaries();
     updateMetrics();
   });
+});
+
+els.stateFilter.addEventListener("input", () => {
+  fitSelectedState();
+  refreshWells();
+  restyleBoundaries();
+  updateMetrics();
 });
 
 els.pwsUpload.addEventListener("change", async (event) => {
@@ -161,10 +184,11 @@ function addStateLayer(geojson) {
     bubblingMouseEvents: false,
     style: stateStyle,
     onEachFeature: (feature, layer) => {
+      const abbr = feature.properties.code || feature.properties.STATE || stateNameToAbbr(feature.properties.name);
+      if (abbr) state.stateBounds.set(abbr, layer.getBounds());
       layer.on("click", (event) => {
         if (state.identifyMode !== "boundaries") return;
         L.DomEvent.stop(event.originalEvent);
-        const abbr = feature.properties.code || feature.properties.STATE || stateNameToAbbr(feature.properties.name);
         const row = state.stateFluoride.get(abbr);
         toggleSelection("state", abbr, layer, detailGrid({
           "State": `${feature.properties.name || abbr} (${abbr || "NA"})`,
@@ -250,6 +274,7 @@ function updateIdentifyInteractivity() {
 function resetHome() {
   document.querySelector("input[name='boundaryLayer'][value='state']").checked = true;
   document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
+  document.querySelector("input[name='wellDisplay'][value='auto']").checked = true;
   state.identifyMode = "boundaries";
   updateIdentifyInteractivity();
   els.stateFilter.value = "";
@@ -264,6 +289,15 @@ function resetHome() {
   refreshWells();
   restyleBoundaries();
   updateMetrics();
+}
+
+function fitSelectedState() {
+  const abbr = els.stateFilter.value;
+  if (!abbr) return;
+  const bounds = state.stateBounds.get(abbr);
+  if (bounds) {
+    map.fitBounds(bounds, { padding: [28, 28], maxZoom: 7 });
+  }
 }
 
 function addHomeControl() {
@@ -288,32 +322,114 @@ function addHomeControl() {
 }
 
 function refreshWells() {
-  if (!state.wellLayer) return;
-  if (map.hasLayer(state.wellLayer)) map.removeLayer(state.wellLayer);
+  if (!state.wells) return;
+  if (state.wellLayer && map.hasLayer(state.wellLayer)) map.removeLayer(state.wellLayer);
+  if (state.wellSummaryLayer && map.hasLayer(state.wellSummaryLayer)) map.removeLayer(state.wellSummaryLayer);
   if (state.selectedFeature?.type === "well") clearSelection();
+  state.visibleWellCount = 0;
+  state.currentWellDisplay = "off";
   if (!els.wellToggle.checked) return;
   const selectedState = els.stateFilter.value;
   const selectedType = els.wellTypeFilter.value;
   const minFluoride = Number(els.fluorideRange.value);
-  const filtered = {
-    type: "FeatureCollection",
-    features: state.wells.features.filter((feature) => {
-      const p = feature.properties;
-      return (!selectedState || p.state === selectedState) &&
-        (!selectedType || p.well_type === selectedType) &&
-        (numeric(p.fluoride_mg_l) >= minFluoride);
-    })
-  };
-  if (state.wellLayer) map.removeLayer(state.wellLayer);
-  addWellLayer(filtered);
-  state.wellLayer.addTo(map);
+  const filteredFeatures = state.wells.features.filter((feature) => {
+    const p = feature.properties;
+    return (!selectedState || p.state === selectedState) &&
+      (!selectedType || p.well_type === selectedType) &&
+      (numeric(p.fluoride_mg_l) >= minFluoride);
+  });
+  state.visibleWellCount = filteredFeatures.length;
+  const display = currentWellDisplayMode(selectedState);
+  state.currentWellDisplay = display;
+  if (display === "summary") {
+    addWellSummaryLayer(filteredFeatures);
+    state.wellSummaryLayer.addTo(map);
+  } else {
+    addWellLayer({ type: "FeatureCollection", features: filteredFeatures });
+    state.wellLayer.addTo(map);
+  }
   bringWellsToFront();
+  updateLegend();
 }
 
 function bringWellsToFront() {
   if (state.wellLayer && map.hasLayer(state.wellLayer)) {
     state.wellLayer.bringToFront();
   }
+  if (state.wellSummaryLayer && map.hasLayer(state.wellSummaryLayer)) {
+    state.wellSummaryLayer.eachLayer((layer) => layer.bringToFront());
+  }
+}
+
+function currentWellDisplayMode(selectedState) {
+  const selected = document.querySelector("input[name='wellDisplay']:checked")?.value || "auto";
+  if (selected !== "auto") return selected;
+  return selectedState || map.getZoom() >= 6 ? "individual" : "summary";
+}
+
+function addWellSummaryLayer(features) {
+  const summaries = summarizeWellsByState(features);
+  state.wellSummaryLayer = L.layerGroup(
+    summaries.map((summary) => {
+      const marker = L.circleMarker(summary.center, summaryStyle(summary));
+      marker.bindPopup(detailGrid({
+        "State": summary.state,
+        "Groundwater wells": summary.count.toLocaleString(),
+        "Average fluoride": `${summary.avgFluoride.toFixed(2)} mg/L`,
+        "Below 0.7 mg/L": summary.low.toLocaleString(),
+        "0.7-2.0 mg/L": summary.medium.toLocaleString(),
+        "Above 2.0 mg/L": summary.high.toLocaleString()
+      }), {
+        autoPan: true,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: 320
+      });
+      marker.on("click", (event) => {
+        if (state.identifyMode !== "wells") return;
+        L.DomEvent.stop(event.originalEvent);
+        els.stateFilter.value = summary.state;
+        fitSelectedState();
+        refreshWells();
+        updateMetrics();
+        els.selectedDetails.innerHTML = detailGrid({
+          "State": summary.state,
+          "Groundwater wells": summary.count.toLocaleString(),
+          "Average fluoride": `${summary.avgFluoride.toFixed(2)} mg/L`,
+          "Display": "State summary"
+        });
+      });
+      return marker;
+    })
+  );
+}
+
+function summarizeWellsByState(features) {
+  const groups = new Map();
+  features.forEach((feature) => {
+    const abbr = feature.properties.state || "Unknown";
+    if (!groups.has(abbr)) {
+      groups.set(abbr, { state: abbr, count: 0, fluoride: [], low: 0, medium: 0, high: 0 });
+    }
+    const group = groups.get(abbr);
+    const fluoride = numeric(feature.properties.fluoride_mg_l);
+    group.count += 1;
+    if (Number.isFinite(fluoride)) {
+      group.fluoride.push(fluoride);
+      if (fluoride > 2) group.high += 1;
+      else if (fluoride >= 0.7) group.medium += 1;
+      else group.low += 1;
+    }
+  });
+  return [...groups.values()].map((group) => {
+    const bounds = state.stateBounds.get(group.state);
+    const center = bounds ? bounds.getCenter() : null;
+    return {
+      ...group,
+      center,
+      avgFluoride: average(group.fluoride)
+    };
+  }).filter((group) => group.center && Number.isFinite(group.avgFluoride));
 }
 
 function restyleBoundaries() {
@@ -325,9 +441,10 @@ function restyleBoundaries() {
 function updateMetrics() {
   const selectedState = els.stateFilter.value;
   const counties = [...state.countyFluoride.values()].filter((row) => !selectedState || row.state === selectedState);
-  const wells = els.wellToggle.checked && state.wellLayer ? state.wellLayer.getLayers().length : 0;
+  const wells = els.wellToggle.checked ? state.visibleWellCount : 0;
   els.metricCounties.textContent = counties.length.toLocaleString();
   els.metricWells.textContent = wells.toLocaleString();
+  els.metricWellsLabel.textContent = state.currentWellDisplay === "summary" ? "Wells summarized" : "Visible wells";
   if (state.activeBoundary === "food") {
     els.metricAverage.textContent = `${average([...state.healthAccess.values()].map((row) => row.limited_healthy_food_pct)).toFixed(1)}%`;
     els.metricAverageLabel.textContent = "Avg limited food access";
@@ -382,6 +499,7 @@ function updateLegend() {
     ${legendRow("#3465a4", "Wells below 0.7 mg/L")}
     ${legendRow("#c78b1c", "Wells 0.7-2.0 mg/L")}
     ${legendRow("#b4473a", "Wells above 2.0 mg/L")}
+    ${state.currentWellDisplay === "summary" ? legendCircle("#263238", "State well summaries") : ""}
   `;
 }
 
@@ -558,6 +676,18 @@ function percent(value) {
   return Number.isFinite(n) ? `${Math.round(n * 100)}%` : "NA";
 }
 
+function summaryStyle(summary) {
+  return {
+    pane: "wellPane",
+    radius: Math.max(8, Math.min(34, 5 + Math.sqrt(summary.count) * 0.7)),
+    fillColor: wellColor(summary.avgFluoride),
+    fillOpacity: 0.78,
+    color: "#101820",
+    weight: 1.5,
+    interactive: state.identifyMode === "wells"
+  };
+}
+
 function statePercent(value) {
   const n = numeric(value);
   return Number.isFinite(n) ? `${(n * 100).toFixed(1)}%` : "NA";
@@ -590,6 +720,10 @@ function detailGrid(items) {
 
 function legendRow(color, label) {
   return `<div class="legendRow"><span class="swatch" style="background:${color}"></span>${label}</div>`;
+}
+
+function legendCircle(color, label) {
+  return `<div class="legendRow"><span class="circleSwatch" style="background:${color}"></span>${label}</div>`;
 }
 
 async function readCsvFile(file) {

@@ -177,6 +177,13 @@ output {
   border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+.circleSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #101820;
+}
+
 .details {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

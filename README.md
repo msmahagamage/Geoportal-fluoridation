@@ -33,6 +33,7 @@ Keep the PowerShell window open while using the geoportal. Press `Ctrl+C` in tha
 - `data/processed/county_health_2025.json`: county healthy-food access and dentist-access indicators from County Health Rankings 2025.
 
 The map uses public Census/Plotly GeoJSON boundaries at runtime, so an internet connection is needed for county and state polygons. The well points and tables are local.
+At national scale, groundwater wells are summarized by state to reduce point crowding. Selecting a state or zooming in switches the map to individual well points.
 
 ## Add More Data
 
