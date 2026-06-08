@@ -109,44 +109,33 @@ h3 {
   gap: 7px;
 }
 
-.panel input[type="radio"],
-#wellToggle {
+.panel input[name="wellDisplay"] {
   appearance: none;
   width: 13px;
   height: 13px;
   flex: 0 0 13px;
   margin: 3px 3px 3px 4px;
   border: 1.5px solid #7a8b93;
-  border-radius: 2px;
+  border-radius: 50%;
   background: #fff;
   display: inline-grid;
   place-content: center;
 }
 
-.panel input[name="wellDisplay"] {
-  border-radius: 50%;
-}
-
 .panel input[name="wellDisplay"]::before {
-  border-radius: 50%;
-}
-
-.panel input[type="radio"]::before,
-#wellToggle::before {
   content: "";
   width: 7px;
   height: 7px;
+  border-radius: 50%;
   transform: scale(0);
   background: #0d6efd;
 }
 
-.panel input[type="radio"]:checked,
-#wellToggle:checked {
+.panel input[name="wellDisplay"]:checked {
   border-color: #0d6efd;
 }
 
-.panel input[type="radio"]:checked::before,
-#wellToggle:checked::before {
+.panel input[name="wellDisplay"]:checked::before {
   transform: scale(1);
 }
 
