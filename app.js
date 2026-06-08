@@ -702,11 +702,11 @@ function percent(value) {
 function summaryStyle(summary) {
   return {
     pane: "wellPane",
-    radius: Math.max(8, Math.min(34, 5 + Math.sqrt(summary.count) * 0.7)),
+    radius: Math.max(5, Math.min(20, 4 + Math.sqrt(summary.count) * 0.38)),
     fillColor: wellColor(summary.avgFluoride),
-    fillOpacity: 0.78,
+    fillOpacity: 0.72,
     color: "#101820",
-    weight: 1.5,
+    weight: 1.2,
     interactive: state.identifyMode === "wells"
   };
 }
