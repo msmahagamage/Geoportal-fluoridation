@@ -92,7 +92,7 @@ document.querySelectorAll("input[name='wellDisplay']").forEach((input) => {
   });
 });
 
-map.on("click", clearSelection);
+map.on("click", handleMapClick);
 
 [els.wellTypeFilter, els.fluorideRange, els.wellToggle].forEach((el) => {
   el.addEventListener("input", () => {
@@ -134,21 +134,7 @@ function addCountyLayer(geojson) {
     onEachFeature: (feature, layer) => {
       layer.on("click", (event) => {
         L.DomEvent.stop(event.originalEvent);
-        const fips = String(feature.id || feature.properties.GEO_ID || "").slice(-5);
-        const row = state.countyFluoride.get(fips);
-        const health = state.healthAccess.get(fips);
-        toggleSelection("county", fips, layer, detailGrid({
-          "County": row?.county || feature.properties.NAME || "Unknown",
-          "FIPS": fips,
-          "Fluoridated": percent(row?.pctfluoride_2022),
-          "Limited healthy food access": healthPercent(health?.limited_healthy_food_pct),
-          "Food environment index": healthNumber(health?.food_environment_index, 1, " / 10"),
-          "Dentists per 100,000": healthNumber(health?.dentists_per_100k, 1),
-          "Population per dentist": wholeNumber(health?.population_per_dentist)
-        }), event.latlng);
-        if (state.selectedFeature?.type === "county" && state.selectedFeature.id === fips) {
-          showHealthDetails(health);
-        }
+        selectCountyFeature(feature, layer, event.latlng);
       });
     }
   });
@@ -164,15 +150,38 @@ function addStateLayer(geojson) {
       if (abbr) state.stateBounds.set(abbr, layer.getBounds());
       layer.on("click", (event) => {
         L.DomEvent.stop(event.originalEvent);
-        const row = state.stateFluoride.get(abbr);
-        toggleSelection("state", abbr, layer, detailGrid({
-          "State": `${feature.properties.name || abbr} (${abbr || "NA"})`,
-          "Counties": valueOrBlank(row?.county_count),
-          "State fluoridation": statePercent(row?.pctfluoride_2022)
-        }), event.latlng);
+        selectStateFeature(feature, layer, event.latlng);
       });
     }
   });
+}
+
+function selectCountyFeature(feature, layer, latlng) {
+  const fips = String(feature.id || feature.properties.GEO_ID || "").slice(-5);
+  const row = state.countyFluoride.get(fips);
+  const health = state.healthAccess.get(fips);
+  toggleSelection("county", fips, layer, detailGrid({
+    "County": row?.county || feature.properties.NAME || "Unknown",
+    "FIPS": fips,
+    "Fluoridated": percent(row?.pctfluoride_2022),
+    "Limited healthy food access": healthPercent(health?.limited_healthy_food_pct),
+    "Food environment index": healthNumber(health?.food_environment_index, 1, " / 10"),
+    "Dentists per 100,000": healthNumber(health?.dentists_per_100k, 1),
+    "Population per dentist": wholeNumber(health?.population_per_dentist)
+  }), latlng);
+  if (state.selectedFeature?.type === "county" && state.selectedFeature.id === fips) {
+    showHealthDetails(health);
+  }
+}
+
+function selectStateFeature(feature, layer, latlng) {
+  const abbr = feature.properties.code || feature.properties.STATE || stateNameToAbbr(feature.properties.name);
+  const row = state.stateFluoride.get(abbr);
+  toggleSelection("state", abbr, layer, detailGrid({
+    "State": `${feature.properties.name || abbr} (${abbr || "NA"})`,
+    "Counties": valueOrBlank(row?.county_count),
+    "State fluoridation": statePercent(row?.pctfluoride_2022)
+  }), latlng);
 }
 
 function addWellLayer(wells) {
@@ -209,6 +218,73 @@ function addWellLayer(wells) {
   });
 }
 
+function handleMapClick(event) {
+  const layer = boundaryLayerAt(event.latlng);
+  if (!layer) {
+    clearSelection();
+    return;
+  }
+  if (state.activeBoundary === "state") {
+    selectStateFeature(layer.feature, layer, event.latlng);
+  } else {
+    selectCountyFeature(layer.feature, layer, event.latlng);
+  }
+}
+
+function boundaryLayerAt(latlng) {
+  const activeLayer = state.activeBoundary === "state" ? state.stateLayer : state.countyLayer;
+  if (!activeLayer || !map.hasLayer(activeLayer)) return null;
+  const matches = [];
+  activeLayer.eachLayer((layer) => {
+    if (layer.getBounds?.().contains(latlng) && pointInGeometry(latlng, layer.feature?.geometry)) {
+      matches.push(layer);
+    }
+  });
+  matches.sort((a, b) => polygonArea(a.feature?.geometry) - polygonArea(b.feature?.geometry));
+  return matches[0] || null;
+}
+
+function pointInGeometry(latlng, geometry) {
+  if (!geometry) return false;
+  const point = [latlng.lng, latlng.lat];
+  if (geometry.type === "Polygon") return pointInPolygon(point, geometry.coordinates);
+  if (geometry.type === "MultiPolygon") return geometry.coordinates.some((polygon) => pointInPolygon(point, polygon));
+  return false;
+}
+
+function pointInPolygon(point, rings) {
+  if (!rings?.length || !pointInRing(point, rings[0])) return false;
+  return !rings.slice(1).some((ring) => pointInRing(point, ring));
+}
+
+function pointInRing(point, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const xi = ring[i][0];
+    const yi = ring[i][1];
+    const xj = ring[j][0];
+    const yj = ring[j][1];
+    const intersects = ((yi > point[1]) !== (yj > point[1])) &&
+      (point[0] < ((xj - xi) * (point[1] - yi)) / (yj - yi) + xi);
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+function polygonArea(geometry) {
+  if (!geometry) return Infinity;
+  const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates || [];
+  return polygons.reduce((sum, polygon) => sum + Math.abs(ringArea(polygon[0] || [])), 0);
+}
+
+function ringArea(ring) {
+  let area = 0;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    area += (ring[j][0] * ring[i][1]) - (ring[i][0] * ring[j][1]);
+  }
+  return area / 2;
+}
+
 function switchBoundary(layerName) {
   if (state.selectedFeature && state.selectedFeature.type !== "well") {
     clearSelection();
@@ -230,6 +306,7 @@ function switchBoundary(layerName) {
     els.viewTitle.textContent = "State Fluoridation";
   }
   restyleBoundaries();
+  refreshWells();
   bringWellsToFront();
   updateLegend();
   updateMetrics();
@@ -710,7 +787,7 @@ function wellBaseStyle(feature) {
     fillOpacity: 0.7,
     color: "#263238",
     weight: 0.4,
-    interactive: true
+    interactive: state.activeBoundary === "none"
   };
 }
 
@@ -740,7 +817,7 @@ function summaryStyle(summary) {
     fillOpacity: 0.72,
     color: "#101820",
     weight: 1.2,
-    interactive: true
+    interactive: state.activeBoundary === "none"
   };
 }
 
