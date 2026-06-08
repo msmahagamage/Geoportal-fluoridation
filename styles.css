@@ -364,7 +364,8 @@ output {
   min-width: 240px;
 }
 
-.leaflet-control-home button {
+.leaflet-control-home button,
+.leaflet-control-info button {
   width: 30px;
   height: 30px;
   border: 0;
@@ -375,8 +376,108 @@ output {
   padding: 0;
 }
 
-.leaflet-control-home button:hover {
+.leaflet-control-info {
+  margin-top: 8px;
+}
+
+.leaflet-control-info button {
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.leaflet-control-home button:hover,
+.leaflet-control-info button:hover {
   background: #f4f6f6;
+}
+
+.demoOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(23, 33, 38, 0.42);
+}
+
+.demoOverlay[hidden] {
+  display: none;
+}
+
+.demoDialog {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  overflow: auto;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 22px 54px rgba(23, 33, 38, 0.26);
+  padding: 26px;
+}
+
+.demoDialog h2 {
+  margin-bottom: 18px;
+}
+
+.demoClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.demoClose:hover {
+  background: #f4f6f6;
+}
+
+.demoSteps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.demoSteps article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 13px;
+  background: #fbfdfc;
+}
+
+.demoSteps span {
+  grid-row: span 2;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1f7a7a;
+  color: #fff;
+  font-weight: 750;
+  font-size: 0.85rem;
+}
+
+.demoSteps h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.demoSteps p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 0.92rem;
 }
 
 @media (max-width: 900px) {
@@ -395,6 +496,10 @@ output {
   }
 
   .metricStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .demoSteps {
     grid-template-columns: 1fr;
   }
 }

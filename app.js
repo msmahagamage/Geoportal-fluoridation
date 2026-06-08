@@ -10,8 +10,8 @@ const DATA = {
 const DATA_VERSION = "20260608-well-aggregation-2";
 
 const HOME_VIEW = {
-  center: [38.6, -96.5],
-  zoom: 5
+  center: [37.8, -96.2],
+  zoom: 5.25
 };
 
 const state = {
@@ -33,7 +33,11 @@ const state = {
   selectedFeature: null
 };
 
-const map = L.map("map", { preferCanvas: true }).setView([39.5, -98.35], 4);
+const map = L.map("map", {
+  preferCanvas: true,
+  zoomSnap: 0.25,
+  zoomDelta: 0.5
+}).setView(HOME_VIEW.center, HOME_VIEW.zoom);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
   attribution: "&copy; OpenStreetMap contributors"
@@ -43,6 +47,7 @@ map.getPane("boundaryPane").style.zIndex = 410;
 map.createPane("wellPane");
 map.getPane("wellPane").style.zIndex = 430;
 addHomeControl();
+addInfoControl();
 let skipNextMapIdentify = false;
 let cursorMoveFrame = null;
 
@@ -60,7 +65,9 @@ const els = {
   metricWellsLabel: document.getElementById("metricWellsLabel"),
   metricAverage: document.getElementById("metricAverage"),
   metricAverageLabel: document.getElementById("metricAverageLabel"),
-  legend: document.getElementById("legend")
+  legend: document.getElementById("legend"),
+  demoOverlay: document.getElementById("demoOverlay"),
+  demoClose: document.getElementById("demoClose")
 };
 
 Promise.all([
@@ -110,6 +117,13 @@ map.on("dragstart", () => {
 map.on("dragend", () => {
   state.isDragging = false;
   clearMapCursor();
+});
+els.demoClose.addEventListener("click", closeDemo);
+els.demoOverlay.addEventListener("click", (event) => {
+  if (event.target === els.demoOverlay) closeDemo();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !els.demoOverlay.hidden) closeDemo();
 });
 
 [els.wellTypeFilter, els.fluorideRange, els.wellToggle, ...els.fluorideCategories].forEach((el) => {
@@ -510,6 +524,35 @@ function addHomeControl() {
     }
   });
   map.addControl(new HomeControl());
+}
+
+function addInfoControl() {
+  const InfoControl = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd() {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-info");
+      const button = L.DomUtil.create("button", "", container);
+      button.type = "button";
+      button.title = "How to use this geoportal";
+      button.setAttribute("aria-label", "Open geoportal demo");
+      button.textContent = "i";
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.on(button, "click", (event) => {
+        L.DomEvent.stop(event);
+        openDemo();
+      });
+      return container;
+    }
+  });
+  map.addControl(new InfoControl());
+}
+
+function openDemo() {
+  els.demoOverlay.hidden = false;
+}
+
+function closeDemo() {
+  els.demoOverlay.hidden = true;
 }
 
 function refreshWells() {

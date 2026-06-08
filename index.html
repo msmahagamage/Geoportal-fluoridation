@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluoridation Geoportal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css?v=20260608-polished-well-filters">
+    <link rel="stylesheet" href="styles.css?v=20260608-demo-home-extent">
   </head>
   <body>
     <aside class="sidebar">
@@ -76,8 +76,38 @@
 
     </main>
 
+    <div class="demoOverlay" id="demoOverlay" hidden>
+      <section class="demoDialog" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+        <button class="demoClose" id="demoClose" type="button" aria-label="Close demo">&times;</button>
+        <p class="eyebrow">Quick Demo</p>
+        <h2 id="demoTitle">How to use the geoportal</h2>
+        <div class="demoSteps">
+          <article>
+            <span>1</span>
+            <h3>Choose layers</h3>
+            <p>Turn groundwater wells, fluoridation, and county health indicators on or off from the Layers panel.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <h3>Explore wells</h3>
+            <p>Use State summaries for an overview, or switch to Individual wells to filter by state, well type, and fluoride category.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <h3>Select features</h3>
+            <p>Click a state, county, or well point to open details. Selected wells are highlighted with a ring.</p>
+          </article>
+          <article>
+            <span>4</span>
+            <h3>Reset the map</h3>
+            <p>Use the H button beside the zoom control to return to the default national view.</p>
+          </article>
+        </div>
+      </section>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-polished-well-filters"></script>
+    <script src="app.js?v=20260608-demo-home-extent"></script>
   </body>
 </html>
 
