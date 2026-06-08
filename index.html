@@ -19,6 +19,10 @@
         <div class="layerGroup">
           <p class="layerGroupTitle">Untreated groundwater wells</p>
           <label><input type="checkbox" id="wellToggle" checked> Groundwater wells</label>
+          <div class="nestedLayerOptions">
+            <label><input type="radio" name="wellDisplay" value="summary" checked> State summaries</label>
+            <label><input type="radio" name="wellDisplay" value="individual"> Individual wells</label>
+          </div>
         </div>
         <div class="layerGroup">
           <p class="layerGroupTitle">Community water fluoridation</p>
@@ -36,12 +40,6 @@
         <h2>Click Mode</h2>
         <label><input type="radio" name="identifyMode" value="boundaries" checked> Select county/state</label>
         <label><input type="radio" name="identifyMode" value="wells"> Select well + popup</label>
-      </section>
-
-      <section class="panel">
-        <h2>Well Display</h2>
-        <label><input type="radio" name="wellDisplay" value="summary" checked> State summaries</label>
-        <label><input type="radio" name="wellDisplay" value="individual"> Individual wells</label>
       </section>
 
       <section class="panel">
@@ -92,7 +90,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=20260608-polygon-toggles"></script>
+    <script src="app.js?v=20260608-well-display-in-layers"></script>
   </body>
 </html>
 

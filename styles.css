@@ -97,6 +97,12 @@ h3 {
   text-transform: uppercase;
 }
 
+.nestedLayerOptions {
+  display: grid;
+  gap: 8px;
+  margin-left: 20px;
+}
+
 .panel label:has(input) {
   display: flex;
   align-items: center;
@@ -115,6 +121,14 @@ h3 {
   background: #fff;
   display: inline-grid;
   place-content: center;
+}
+
+.panel input[name="wellDisplay"] {
+  border-radius: 50%;
+}
+
+.panel input[name="wellDisplay"]::before {
+  border-radius: 50%;
 }
 
 .panel input[type="radio"]::before,
