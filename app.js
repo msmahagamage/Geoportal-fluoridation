@@ -27,6 +27,7 @@ const state = {
   visibleWellCount: 0,
   currentWellDisplay: "summary",
   visibleWellFeatures: [],
+  selectedWellMarker: null,
   activeBoundary: "state",
   selectedFeature: null
 };
@@ -271,12 +272,21 @@ function showWellPopup(feature) {
   const details = combineDetails(wellDetailsHtml(feature), boundary?.detailsHtml);
   clearSelection();
   state.selectedFeature = { type: "well", id: feature.properties.usgs_id, layer: null };
-  L.popup({
+  showSelectedWellMarker(feature, latlng);
+  const popup = L.popup({
     autoPan: true,
     closeButton: true,
     closeOnClick: false,
     maxWidth: 360
-  }).setLatLng(latlng).setContent(details).openOn(map);
+  }).setLatLng(latlng).setContent(details);
+  popup.on("remove", () => {
+    if (state.selectedFeature?.type === "well" && state.selectedFeature.id === feature.properties.usgs_id) {
+      state.selectedFeature = null;
+      clearSelectedWellMarker();
+      restyleBoundaries();
+    }
+  });
+  popup.openOn(map);
 }
 
 function wellDetailsHtml(feature) {
@@ -776,6 +786,7 @@ function toggleSelection(type, id, layer, detailsHtml, popupLatLng = null) {
 function clearSelection() {
   const selected = state.selectedFeature;
   state.selectedFeature = null;
+  clearSelectedWellMarker();
   map.closePopup();
   if (selected?.type === "well" && selected.layer) {
     selected.layer.setStyle(wellBaseStyle(selected.layer.feature));
@@ -793,6 +804,45 @@ function applySelectedStyle() {
     selected.layer.setStyle(selectedBoundaryStyle());
   }
   bringWellsToFront();
+}
+
+function showSelectedWellMarker(feature, latlng) {
+  clearSelectedWellMarker();
+  const radius = radiusFor(feature.properties.fluoride_mg_l);
+  state.selectedWellMarker = L.layerGroup([
+    L.circleMarker(latlng, {
+      pane: "wellPane",
+      radius: radius + 8,
+      fillOpacity: 0,
+      color: "#ffffff",
+      weight: 7,
+      interactive: false
+    }),
+    L.circleMarker(latlng, {
+      pane: "wellPane",
+      radius: radius + 6,
+      fillOpacity: 0,
+      color: "#101820",
+      weight: 3,
+      interactive: false
+    }),
+    L.circleMarker(latlng, {
+      pane: "wellPane",
+      radius: Math.max(radius + 1, 5),
+      fillColor: wellColor(feature.properties.fluoride_mg_l),
+      fillOpacity: 0.95,
+      color: "#101820",
+      weight: 1.4,
+      interactive: false
+    })
+  ]).addTo(map);
+  state.selectedWellMarker.eachLayer((layer) => layer.bringToFront());
+}
+
+function clearSelectedWellMarker() {
+  if (!state.selectedWellMarker) return;
+  map.removeLayer(state.selectedWellMarker);
+  state.selectedWellMarker = null;
 }
 
 function choroplethColor(value) {
