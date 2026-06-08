@@ -84,7 +84,7 @@ Promise.all([
 });
 
 document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
-  input.addEventListener("change", () => switchBoundary(input.value));
+  input.addEventListener("change", () => handleBoundaryToggle(input));
 });
 
 document.querySelectorAll("input[name='identifyMode']").forEach((input) => {
@@ -258,6 +258,19 @@ function switchBoundary(layerName) {
   updateMetrics();
 }
 
+function handleBoundaryToggle(input) {
+  if (input.checked) {
+    document.querySelectorAll("input[name='boundaryLayer']").forEach((other) => {
+      if (other !== input) other.checked = false;
+    });
+    switchBoundary(input.value);
+    return;
+  }
+  if (state.activeBoundary === input.value) {
+    switchBoundary("none");
+  }
+}
+
 function switchIdentifyMode(mode) {
   state.identifyMode = mode;
   clearSelection();
@@ -272,6 +285,9 @@ function updateIdentifyInteractivity() {
 
 function resetHome() {
   document.querySelector("input[name='boundaryLayer'][value='state']").checked = true;
+  document.querySelectorAll("input[name='boundaryLayer']").forEach((input) => {
+    input.checked = input.value === "state";
+  });
   document.querySelector("input[name='identifyMode'][value='boundaries']").checked = true;
   document.querySelector("input[name='wellDisplay'][value='summary']").checked = true;
   state.identifyMode = "boundaries";
@@ -469,7 +485,7 @@ function updateMetrics() {
   els.metricWellsLabel.textContent = state.currentWellDisplay === "summary" ? "Wells summarized" : "Visible wells";
   if (state.activeBoundary === "none") {
     els.metricAverage.textContent = "--";
-    els.metricAverageLabel.textContent = "No polygon layer";
+    els.metricAverageLabel.textContent = "Groundwater only";
   } else if (state.activeBoundary === "food") {
     els.metricAverage.textContent = `${average([...state.healthAccess.values()].map((row) => row.limited_healthy_food_pct)).toFixed(1)}%`;
     els.metricAverageLabel.textContent = "Avg limited food access";
